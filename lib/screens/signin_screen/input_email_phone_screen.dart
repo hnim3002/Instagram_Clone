@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:instagram_clon/screens/signin_screen/input_password_fullname.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 
 import '../../Widgets/CustomButton_widgets.dart';
@@ -7,7 +8,8 @@ import '../../Widgets/InputTextField_widgets.dart';
 import '../login_screen.dart';
 
 class InputEmailScreen extends StatefulWidget {
-  const InputEmailScreen({super.key});
+  final String username;
+  const InputEmailScreen({super.key, required this.username});
 
   @override
   State<InputEmailScreen> createState() => _InputEmailScreenState();
@@ -15,6 +17,13 @@ class InputEmailScreen extends StatefulWidget {
 
 class _InputEmailScreenState extends State<InputEmailScreen> {
   final TextEditingController _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _emailController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,10 +35,8 @@ class _InputEmailScreenState extends State<InputEmailScreen> {
         resizeToAvoidBottomInset: false,
         body: SafeArea(
             child: Column(
-          children: [
-            Flexible(
-              flex: 1,
-              child: Container(),
+                children: [
+                  Flexible(flex: 1, child: Container(),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -60,10 +67,14 @@ class _InputEmailScreenState extends State<InputEmailScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
                         // Content for Tab 1
-                        PhoneNumberTabContent(isDarkMode: isDarkMode),
+                        PhoneNumberTabContent(
+                          isDarkMode: isDarkMode,
+                          username: widget.username,
+                        ),
 
                         // Content for Tab 2\
                         EmailTabContent(
+                            username: widget.username,
                             isDarkMode: isDarkMode,
                             emailController: _emailController)
                       ],
@@ -79,9 +90,11 @@ class _InputEmailScreenState extends State<InputEmailScreen> {
             const CustomDivider(),
             SmallTextButton(
               isDarkMode: isDarkMode,
-              onPressed: () {},
-              firText: "Don't have an account? ",
-              secText: "Sign up.",
+              onPressed: () {
+                Navigator.popUntil(context, (route) => route.isFirst);
+              },
+              firText: "Already have an account? ",
+              secText: "Log in.",
             ),
             const SizedBox(
               height: 15.0,
@@ -98,8 +111,10 @@ class EmailTabContent extends StatelessWidget {
     super.key,
     required this.isDarkMode,
     required TextEditingController emailController,
+    required this.username,
   }) : _emailController = emailController;
 
+  final String username;
   final bool isDarkMode;
   final TextEditingController _emailController;
 
@@ -126,7 +141,15 @@ class EmailTabContent extends StatelessWidget {
             "Next",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => InputPasswordScreen(
+                          username: username,
+                          emailPhone: _emailController.text.trim(),
+                        )));
+          },
         ),
       ],
     );
@@ -137,9 +160,12 @@ class PhoneNumberTabContent extends StatelessWidget {
   const PhoneNumberTabContent({
     super.key,
     required this.isDarkMode,
+    required this.username,
   });
 
+  final String username;
   final bool isDarkMode;
+  final String number = '';
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +184,7 @@ class PhoneNumberTabContent extends StatelessWidget {
           ),
           child: InternationalPhoneNumberInput(
             onInputChanged: (PhoneNumber number) {
-              // Handle phone number changes
+              number = number.phoneNumber.toString() as PhoneNumber;
               print(number.phoneNumber);
             },
             onInputValidated: (bool value) {
@@ -209,7 +235,13 @@ class PhoneNumberTabContent extends StatelessWidget {
             "Next",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => InputPasswordScreen(
+                        username: username, emailPhone: number)));
+          },
         ),
       ],
     );

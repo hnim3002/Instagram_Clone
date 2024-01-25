@@ -74,7 +74,7 @@ class _InputUserNameScreenState extends State<InputUserNameScreen> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const InputEmailScreen()));
+                              builder: (context) => InputEmailScreen(username: _userNameController.text.trim(),)));
                     },
                   ),
                   const SizedBox(

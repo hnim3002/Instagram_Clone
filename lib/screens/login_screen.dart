@@ -1,11 +1,20 @@
+import 'dart:ffi';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:instagram_clon/resources/auth_method.dart';
+import 'package:instagram_clon/screens/Home_screen.dart';
 import 'package:instagram_clon/screens/signin_screen/input_username_screen.dart';
 
 import 'package:instagram_clon/utils/color_schemes.dart';
 
 import '../Widgets/CustomButton_widgets.dart';
 import '../Widgets/InputTextField_widgets.dart';
+import '../responsive/mobile_screen.dart';
+import '../responsive/responsive_layout.dart';
+import '../responsive/web_screen.dart';
+import '../utils/utils.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,6 +26,25 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) {
+        print('User is currently signed out!');
+      } else {
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const ResponsiveLayout(
+                      mobileScreenLayout: MobileScreenLayout(),
+                      webScreenLayout: WebScreenLayout(),
+                    )));
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -24,6 +52,24 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+  }
+
+  Future<void> signIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+    String res = await AuthMethods().signInUser(
+        emailOrPhone: _emailController.text.trim(),
+        password: _passwordController.text.trim());
+
+    setState(() {
+      _isLoading = false;
+    });
+    if (res == "success") {
+    } else {
+      if (!mounted) return;
+      showSnackBar(res, context);
+    }
   }
 
   @override
@@ -80,12 +126,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: 17.0,
                   ),
                   CustomButton(
-                    buttonContext: const Text(
-                      "Log in",
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                    onPressed: () {},
+                    buttonContext: _isLoading
+                        ? const SizedBox(
+                            width: 20.0, // Set the desired width
+                            height: 20.0, // Set the desired height
+                            child: CircularProgressIndicator(strokeWidth: 3.0),
+                          )
+                        : const Text(
+                            "Log in",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
+                    onPressed: () {
+                      signIn();
+                    },
                   ),
                   const SizedBox(
                     height: 9.0,
