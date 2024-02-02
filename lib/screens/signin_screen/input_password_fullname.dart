@@ -25,7 +25,7 @@ class _InputPasswordScreenState extends State<InputPasswordScreen> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
+
     super.dispose();
     _fullNameController.dispose();
     _passwordController.dispose();
