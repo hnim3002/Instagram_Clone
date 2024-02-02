@@ -1,12 +1,10 @@
-import 'dart:ffi';
+
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:instagram_clon/resources/auth_method.dart';
-import 'package:instagram_clon/screens/Home_screen.dart';
 import 'package:instagram_clon/screens/signin_screen/input_username_screen.dart';
-
 import 'package:instagram_clon/utils/color_schemes.dart';
 
 import '../Widgets/CustomButton_widgets.dart';
