@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:instagram_clon/screens/post_screen/select_img.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user.dart' as model;
@@ -14,13 +16,24 @@ class MobileScreenLayout extends StatefulWidget {
 }
 
 class _MobileScreenLayoutState extends State<MobileScreenLayout> {
-  final PageController _pageViewController = PageController();
+  final PageController _pageViewController = PageController(initialPage: 1);
   final PageController _navigationController = PageController();
   int _selectedIndex = 0;
-  int _viewPageIndex = 0;
+  int _viewPageIndex = 1;
 
   void navigationTapped(int index) {
-    _navigationController.jumpToPage(index);
+    if(index == 0) {
+      _navigationController.jumpToPage(index);
+    } else if (index == 1) {
+      _navigationController.jumpToPage(index);
+    } else if (index == 2) {
+      _pageViewController.animateToPage(0, duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut);
+    } else if (index == 3) {
+      _navigationController.jumpToPage(index--);
+    } else if (index == 4) {
+      _navigationController.jumpToPage(index--);
+    }
   }
 
   @override
@@ -30,34 +43,19 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
     return Scaffold(
       body: SafeArea(
         child: PageView(
-          /// [PageView.scrollDirection] defaults to [Axis.horizontal].
-          /// Use [Axis.vertical] to scroll vertically.
           controller: _pageViewController,
           children: <Widget>[
-            PageView(
-              physics: const NeverScrollableScrollPhysics(),
-              controller: _navigationController,
-              children: const [
-                Center(
-                  child: Text('1'),
-                ),
-                Center(
-                  child: Text('2'),
-                ),
-                Center(
-                  child: Text('3'),
-                ),
-                Center(
-                  child: Text('4'),
-                ),
-                Center(
-                  child: Text('5'),
-                ),
-              ],
-
+            PostScreen(
+              closeBtnOnPressed: () {
+                _pageViewController.animateToPage(1, duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut);
+              },
             ),
-            const Center(
-              child: Text('Second Page'),
+            Center(
+              child: Text('Home_Screen'),
+            ),
+            Center(
+              child: Text('Chat_Screen'),
             ),
           ],
           onPageChanged: (index) {
@@ -67,7 +65,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
           },
         ),
       ),
-      bottomNavigationBar:_viewPageIndex == 0 ? BottomNavigationBar(
+      bottomNavigationBar:_viewPageIndex == 1 ? BottomNavigationBar(
         currentIndex: _selectedIndex,
         items: <BottomNavigationBarItem>[
           const BottomNavigationBarItem(
