@@ -1,7 +1,10 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:instagram_clon/screens/post_screen/crop_img_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_gallery/photo_gallery.dart';
-import 'dart:io' show Platform;
+import 'dart:io' show File, Platform;
 import 'package:transparent_image/transparent_image.dart';
 
 class PostScreen extends StatefulWidget {
@@ -13,6 +16,7 @@ class PostScreen extends StatefulWidget {
 }
 
 class _PostScreenState extends State<PostScreen> {
+  File? _file;
   Medium? _medium;
   List<Medium>? _media;
   List<Album>? _albums;
@@ -49,6 +53,7 @@ class _PostScreenState extends State<PostScreen> {
       _media = mediaPage.items;
       _medium = mediaPage.items[0];
     });
+    setFile();
   }
 
   void initMedia() async {
@@ -60,9 +65,171 @@ class _PostScreenState extends State<PostScreen> {
         _media = mediaPage.items;
         _medium = mediaPage.items[0];
         _albums = albums;
-
       });
+      setFile();
     }
+  }
+
+  Future<void> setFile() async {
+    _file = await PhotoGallery.getFile(
+      mediumId: _medium!.id,
+      mediumType: _medium!.mediumType,
+      mimeType: _medium!.mimeType,
+    );
+  }
+
+  Future<XFile?> getImgCamera() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? photo = await picker.pickImage(source: ImageSource.camera);
+    return photo;
+  }
+
+  Future<Uint8List> convertToUint8List(img) async {
+    return await img.readAsBytes();
+  }
+
+  void toCropScreen(Uint8List file) {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => CropImgScreen(file: file)));
+  }
+
+  void onItemSelect(Medium medium) {
+    _medium = medium;
+    setFile();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool isDarkMode =
+        MediaQuery.of(context).platformBrightness == Brightness.dark;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("New post"),
+        actions: [
+          TextButton(
+              onPressed: () async {
+                toCropScreen(await convertToUint8List(_file));
+              },
+              child: const Text(
+                "Next",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ))
+        ],
+        leading: IconButton(
+          onPressed: () {
+            widget.closeBtnOnPressed();
+          },
+          icon: const Icon(Icons.close),
+        ),
+      ),
+      body: PopScope(
+        canPop: false,
+        onPopInvoked: (bool didPop) {
+          if (didPop) {
+            return;
+          }
+          widget.closeBtnOnPressed();
+        },
+        child: SafeArea(
+            child: Column(
+          children: [
+            SizedBox(
+                height: 370,
+                width: double.infinity,
+                child: _medium == null
+                    ? const CircularProgressIndicator()
+                    : ClipRect(
+                        child: FittedBox(
+                          fit: BoxFit.cover,
+                          child: _medium?.mediumType == MediumType.image
+                              ? FadeInImage(
+                                  placeholder: MemoryImage(kTransparentImage),
+                                  image: PhotoProvider(
+                                    mediumId: _medium!.id,
+                                  ),
+                                )
+                              : Container(),
+                        ),
+                      )),
+            SizedBox(
+              height: 60,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: TextButton(
+                      onPressed: () {
+                        showBottomSheet();
+                      },
+                      child: Row(
+                        children: [
+                          Text(
+                            albumsName,
+                            style: TextStyle(
+                                color: isDarkMode ? Colors.white : Colors.black,
+                                fontSize: 18),
+                          ),
+                          Icon(
+                            Icons.expand_more,
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                      onPressed: () async {
+                        toCropScreen(
+                            await convertToUint8List(await getImgCamera()));
+                      },
+                      icon: const Icon(Icons.camera_alt))
+                ],
+              ),
+            ),
+            Expanded(
+              child: _medium == null
+                  ? const CircularProgressIndicator()
+                  : GridView.count(
+                      crossAxisCount: 4,
+                      mainAxisSpacing: 1.0,
+                      crossAxisSpacing: 1.0,
+                      children: <Widget>[
+                        ...?_media?.map(
+                          (medium) => GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                onItemSelect(medium);
+                              });
+                            },
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                FadeInImage(
+                                  fit: BoxFit.cover,
+                                  placeholder: MemoryImage(kTransparentImage),
+                                  image: ThumbnailProvider(
+                                    mediumId: medium.id,
+                                    mediumType: medium.mediumType,
+                                    highQuality: true,
+                                  ),
+                                ),
+                                Container(
+                                  color: _medium == medium
+                                      ? Colors.white60
+                                      : Colors.transparent,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+            )
+          ],
+        )),
+      ),
+    );
   }
 
   void showBottomSheet() {
@@ -83,33 +250,29 @@ class _PostScreenState extends State<PostScreen> {
                 Container(
                   width: 40,
                   height: 5, // Height of the divider
-                  margin: const EdgeInsets.symmetric(vertical: 10), // Adjust vertical spacing
+                  margin: const EdgeInsets.symmetric(
+                      vertical: 10), // Adjust vertical spacing
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10), // Rounded corners
                     color: Colors.grey[700], // Divider color
                   ),
                 ),
                 Stack(
-                  alignment:Alignment.center,
+                  alignment: Alignment.center,
                   children: [
                     Container(
                       alignment: Alignment.centerLeft,
                       child: TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text(
-                          "Cancel",
-                          style: TextStyle(
-                            fontSize: 17
-                          ),
-                        )
-                      ),
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            "Cancel",
+                            style: TextStyle(fontSize: 17),
+                          )),
                     ),
                     const Text(
                       "Select album",
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold
-                      ),
+                      style:
+                          TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -190,120 +353,9 @@ class _PostScreenState extends State<PostScreen> {
                     },
                   ),
                 ),
-
               ],
             ),
           );
         });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    bool isDarkMode =
-        MediaQuery.of(context).platformBrightness == Brightness.dark;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("New post"),
-        actions: [TextButton(onPressed: () {}, child: const Text("Next"))],
-        leading: IconButton(
-          onPressed: () {
-            widget.closeBtnOnPressed();
-          },
-          icon: const Icon(Icons.close),
-        ),
-      ),
-      body: SafeArea(
-          child: Column(
-            children: [
-              SizedBox(
-                  height: 370,
-                  width: double.infinity,
-                  child: _medium == null
-                      ? const CircularProgressIndicator()
-                      : ClipRect(
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            child: _medium?.mediumType == MediumType.image
-                                ? FadeInImage(
-                                    placeholder: MemoryImage(kTransparentImage),
-                                    image: PhotoProvider(
-                                      mediumId: _medium!.id,
-                                    ),
-                                  )
-                                : Container(),
-                          ),
-                        )),
-              SizedBox(
-                height: 60,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10),
-                      child: TextButton(
-                        onPressed: () {
-                          showBottomSheet();
-                        },
-                        child: Row(
-                          children: [
-                            Text(
-                              albumsName,
-                              style: const TextStyle(
-                                  color: Colors.black, fontSize: 18),
-                            ),
-                            const Icon(
-                              Icons.expand_more,
-                              color: Colors.black,
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                    IconButton(onPressed: () {}, icon: const Icon(Icons.camera_alt))
-                  ],
-                ),
-              ),
-              Expanded(
-                child: _medium == null
-                    ? const CircularProgressIndicator()
-                    : GridView.count(
-                        crossAxisCount: 4,
-                        mainAxisSpacing: 1.0,
-                        crossAxisSpacing: 1.0,
-                        children: <Widget>[
-                          ...?_media?.map(
-                            (medium) => GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _medium = medium;
-                                });
-                              },
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  FadeInImage(
-                                    fit: BoxFit.cover,
-                                    placeholder: MemoryImage(kTransparentImage),
-                                    image: ThumbnailProvider(
-                                      mediumId: medium.id,
-                                      mediumType: medium.mediumType,
-                                      highQuality: true,
-                                    ),
-                                  ),
-                                  Container(
-                                    color: _medium == medium
-                                        ? Colors.white60
-                                        : Colors.transparent,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-              )
-        ],
-      )),
-    );
   }
 }
