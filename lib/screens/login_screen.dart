@@ -7,6 +7,7 @@ import 'package:instagram_clon/resources/auth_method.dart';
 import 'package:instagram_clon/screens/signin_screen/input_username_screen.dart';
 import 'package:instagram_clon/utils/color_schemes.dart';
 
+import '../Widgets/CustomDivider_widgets.dart';
 import '../Widgets/CustomButton_widgets.dart';
 import '../Widgets/InputTextField_widgets.dart';
 import '../responsive/mobile_screen.dart';
@@ -220,20 +221,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class CustomDivider extends StatelessWidget {
-  const CustomDivider({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Divider(
-      color: Colors.grey[400]?.withOpacity(0.4),
-      height: 20,
     );
   }
 }
