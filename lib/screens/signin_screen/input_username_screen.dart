@@ -94,20 +94,6 @@ class _InputUserNameScreenState extends State<InputUserNameScreen> {
   }
 }
 
-class CustomDivider extends StatelessWidget {
-  const CustomDivider({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Divider(
-      color: Colors.grey[400]?.withOpacity(0.4),
-      height: 20,
-    );
-  }
-}
-
 class SmallTextButton extends StatelessWidget {
   const SmallTextButton({
     super.key,

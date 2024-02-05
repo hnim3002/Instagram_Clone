@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:instagram_clon/screens/signin_screen/input_password_fullname.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 
+import '../../Widgets/CustomDivider_widgets.dart';
 import '../../Widgets/CustomButton_widgets.dart';
 import '../../Widgets/InputTextField_widgets.dart';
 import '../login_screen.dart';
