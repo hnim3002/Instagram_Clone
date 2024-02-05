@@ -1,7 +1,8 @@
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:instagram_clon/screens/post_screen/select_img.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user.dart' as model;
@@ -65,53 +66,55 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
           },
         ),
       ),
-      bottomNavigationBar:_viewPageIndex == 1 ? BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        items: <BottomNavigationBarItem>[
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: '',
-            activeIcon: Icon(Icons.home),
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              "assets/images/ic_search_outline.svg",
-              height: 23,
-              width: 23,
-            ),
-            label: '',
-            activeIcon: SvgPicture.asset(
-              "assets/images/ic_search_fill.svg",
-              height: 23,
-              width: 23,
+      bottomNavigationBar: _viewPageIndex == 1 ? Container(
+        decoration: const BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: Color(0xffAEADB2),
+              width: 0.3,
             ),
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.add_box_outlined),
-            label: '',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border_outlined),
-            label: '',
-            activeIcon: Icon(Icons.favorite)),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person_outlined),
-            label: '',
-          ),
-        ],
-        backgroundColor: !isDarkMode ? Colors.white : Colors.black,
-        unselectedItemColor: Colors.black,
-        selectedItemColor: Colors.black,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-            navigationTapped(index);
-          });
-        },
-      ) : null
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Symbols.home_rounded),
+              label: '',
+              activeIcon: Icon(Symbols.home_rounded, fill: 1, weight: 500,),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Symbols.search_rounded),
+              label: '',
+              activeIcon: Icon(Symbols.search_rounded, weight: 700,),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Symbols.add_box),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Symbols.favorite),
+              label: '',
+              activeIcon: Icon(Symbols.favorite, fill: 1,),),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outlined),
+              label: '',
+            ),
+          ],
+          backgroundColor: !isDarkMode ? Colors.white : Colors.black,
+          unselectedItemColor: isDarkMode ? Colors.white : Colors.black,
+          selectedItemColor: isDarkMode ? Colors.white : Colors.black,
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          type: BottomNavigationBarType.fixed,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+              navigationTapped(index);
+            });
+          },
+        ) ,
+      ) : null,
     );
   }
 }
