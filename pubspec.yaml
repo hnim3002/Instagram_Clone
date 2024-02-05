@@ -41,10 +41,15 @@ dependencies:
   photo_gallery: ^2.1.1
   permission_handler: ^11.2.0
   transparent_image: ^2.0.1
+  image_picker: ^1.0.7
+  custom_image_crop: ^0.0.13
+  material_symbols_icons: ^4.2718.0
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
