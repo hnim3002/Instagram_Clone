@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:instagram_clon/resources/auth_method.dart';
 import 'package:instagram_clon/utils/utils.dart';
 
-import '../../Widgets/CustomButton_widgets.dart';
-import '../../Widgets/InputTextField_widgets.dart';
+import '../../Widgets/custom_button_widgets.dart';
+import '../../Widgets/input_textfield_widgets.dart';
 import '../Home_screen.dart';
 
 class InputPasswordScreen extends StatefulWidget {

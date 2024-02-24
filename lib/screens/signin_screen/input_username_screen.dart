@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_clon/screens/signin_screen/input_email_phone_screen.dart';
 
-import '../../Widgets/CustomButton_widgets.dart';
-import '../../Widgets/InputTextField_widgets.dart';
+import '../../Widgets/custom_button_widgets.dart';
+import '../../Widgets/input_textfield_widgets.dart';
 
 class InputUserNameScreen extends StatefulWidget {
   const InputUserNameScreen({super.key});

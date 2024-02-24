@@ -3,6 +3,9 @@ import 'package:instagram_clon/providers/user_provider.dart';
 import 'package:instagram_clon/utils/dimenstion.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/comments_provider.dart';
+import '../providers/posts_provider.dart';
+
 class ResponsiveLayout extends StatefulWidget {
   final Widget webScreenLayout;
   final Widget mobileScreenLayout;
@@ -19,9 +22,16 @@ class ResponsiveLayout extends StatefulWidget {
 class _ResponsiveLayoutState extends State<ResponsiveLayout> {
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
     addData();
+    super.didChangeDependencies();
+  }
+
+  @override
+  void initState() {
+    getPostData();
+    super.initState();
+
   }
 
   addData() async {
@@ -29,12 +39,16 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout> {
     await userProvider.refreshUser();
   }
 
+  Future<void> getPostData() async {
+    await Provider.of<PostsProvider>(context, listen: false).refreshPostData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       if (constraints.maxWidth > webScreenSize) {
-        return widget.webScreenLayout;
+        return widget.mobileScreenLayout;
       } else {
         return widget.mobileScreenLayout;
       }

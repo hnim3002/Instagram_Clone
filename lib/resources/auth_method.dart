@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:instagram_clon/models/user.dart' as model;
+import 'package:instagram_clon/utils/const.dart';
 
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -36,7 +37,7 @@ class AuthMethods {
           username: username,
           fullname: fullname,
           uid: credential.user!.uid,
-          photoUrl: "",
+          photoUrl: kKeyDefaultAvatar,
           followers: [],
           following: []);
 

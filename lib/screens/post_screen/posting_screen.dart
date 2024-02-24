@@ -1,9 +1,15 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:instagram_clon/Widgets/CustomDivider_widgets.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:instagram_clon/Widgets/custom_divider_widgets.dart';
+import 'package:instagram_clon/resources/firestore_method.dart';
+import 'package:instagram_clon/utils/utils.dart';
+import 'package:provider/provider.dart';
 
-import '../../Widgets/CustomButton_widgets.dart';
+import '../../Widgets/custom_button_widgets.dart';
+import '../../models/user.dart' as model;
+import '../../providers/user_provider.dart';
 
 class PostingScreen extends StatefulWidget {
   final Uint8List file;
@@ -33,6 +39,41 @@ class _PostingScreenState extends State<PostingScreen> {
     super.dispose();
   }
 
+
+  Future<Uint8List> compressImage(Uint8List imageBytes, int quality) async {
+    try {
+      final compressedImageBytes = await FlutterImageCompress.compressWithList(
+        imageBytes,
+        quality: quality, // Compression quality (0 to 100)
+      );
+      return compressedImageBytes;
+    } catch (e) {
+      print('Error compressing image: $e');
+      return imageBytes;
+    }
+  }
+
+  Future<void> postImage(
+      String uid, String username, String userPhotoUrl) async {
+    try {
+      String res = await FirestoreMethods().uploadPost(
+          caption: _postController.text.trim(),
+          username: username,
+          file:  await compressImage(widget.file, 80),
+          uid: uid,
+          userPhotoUrl: userPhotoUrl);
+      if(res == "success") {
+        if (!context.mounted) return;
+        showSnackBar("Posted!", context);
+      } else {
+        if (!context.mounted) return;
+        showSnackBar(res , context);
+      }
+    } catch (e) {
+      showSnackBar(e.toString() , context);
+    }
+  }
+
   void _onFocusChange() {
     if (_focusNode.hasFocus) {
       // TextField is in focus
@@ -53,9 +94,10 @@ class _PostingScreenState extends State<PostingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final model.User? user = Provider.of<UserProvider>(context).user;
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
-    return Scaffold(
+    return  Scaffold(
       appBar: AppBar(
         title: const Text("New Post"),
         leading: IconButton(
@@ -96,6 +138,7 @@ class _PostingScreenState extends State<PostingScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 20,),
                       Container(
                           height: 50,
                           color: isFocus
@@ -126,7 +169,11 @@ class _PostingScreenState extends State<PostingScreen> {
                             ),
                           ],
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          if(user != null) {
+                            postImage(user.uid.toString(), user.username.toString(), user.photoUrl.toString());
+                          }
+                        },
                       ),
                     ),
                     const SizedBox(

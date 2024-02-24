@@ -1,12 +1,29 @@
 import 'dart:core';
 
-
+const kKeyDefaultAvatar = "https://firebasestorage.googleapis.com/v0/b/instagram-clone-5e088.appspot.com/o/Default_User_Avatar%2Fuser.png?alt=media&token=fde72b33-4599-438d-b316-dbf0ca58a2e3";
 const kKeyEmail = "email";
-const kKeyCollectionUsers = "user";
+const kKeyCollectionUsers = "users";
 const kKeyUserName = "username";
 const kKeyFullName = "fullname";
 const kKeyUsersId = "uid";
-const kKeyImage = "photoUrl";
+const kKeyUserPhoto = "userPhotoUrl";
 const kKeyUserFollowers = "followers";
 const kKeyUserFollowing = "following";
 const kKeyFMCToken = "fcmToken";
+
+
+const kKeyCollectionPosts = "posts";
+const kKeyPostId = "postId";
+const kKeyPostPhoto = "postPhotoUrl";
+const kKeyTimestamp = "timestamp";
+const kKeyCaption = "caption";
+const kKeyLike = "like";
+
+const kKeySubCollectionComment = "comments";
+const kKeySubCollectionReplyComment = "replies";
+const kKeyCommentContent = "commentContent";
+const kKeyParentId = "parentId";
+const kKeyCommentId = "commentId";
+const kKeySenderId = "senderId";
+const kKeyReceiverId = "receiverId";
+const kKeyReplyId = "replyId";

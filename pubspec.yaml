@@ -32,10 +32,11 @@ dependencies:
     sdk: flutter
 
   firebase_core: ^2.24.2
-  flutter_svg: ^2.0.9
-  intl_phone_number_input: ^0.7.4
+  firebase_storage: ^11.6.4
   firebase_auth: ^4.16.0
   cloud_firestore: ^4.14.0
+  flutter_svg: ^2.0.9
+  intl_phone_number_input: ^0.7.4
   cupertino_icons: ^1.0.2
   provider: ^6.1.1
   photo_gallery: ^2.1.1
@@ -44,6 +45,12 @@ dependencies:
   image_picker: ^1.0.7
   custom_image_crop: ^0.0.13
   material_symbols_icons: ^4.2718.0
+  uuid: ^4.3.3
+  page_route_animator: ^1.0.3
+  cached_network_image: ^3.3.1
+  intl: ^0.19.0
+  flutter_image_compress: ^2.1.0
+  expandable_text: ^2.3.0
 
 
 dev_dependencies:

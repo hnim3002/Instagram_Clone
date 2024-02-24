@@ -27,7 +27,7 @@ class User {
         kKeyUserName: username,
         kKeyFullName: fullname,
         kKeyEmail: email,
-        kKeyImage: photoUrl,
+        kKeyUserPhoto: photoUrl,
         kKeyUserFollowers: followers,
         kKeyUserFollowing: following
       };
@@ -42,7 +42,7 @@ class User {
         username: data?[kKeyUserName],
         fullname: data?[kKeyFullName],
         uid: data?[kKeyUsersId],
-        photoUrl: data?[kKeyImage],
+        photoUrl: data?[kKeyUserPhoto],
         followers:  data?[kKeyUserFollowers] is Iterable ? List.from(data?[kKeyUserFollowers]) : null,
         following:  data?[kKeyUserFollowing] is Iterable ? List.from(data?[kKeyUserFollowing]) : null);
   }
@@ -53,7 +53,7 @@ class User {
       if (username != null) kKeyUserName: username,
       if (fullname != null) kKeyFullName: fullname,
       if (uid != null) kKeyUsersId: uid,
-      if (photoUrl != null) kKeyImage: photoUrl,
+      if (photoUrl != null) kKeyUserPhoto: photoUrl,
       if (followers != null) kKeyUserFollowers: followers,
       if (following != null) kKeyUserFollowing: following,
     };

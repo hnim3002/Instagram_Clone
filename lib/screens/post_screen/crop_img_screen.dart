@@ -3,7 +3,7 @@ import 'package:custom_image_crop/custom_image_crop.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clon/screens/post_screen/posting_screen.dart';
-import 'package:material_symbols_icons/symbols.dart';
+
 
 
 class CropImgScreen extends StatefulWidget {
@@ -55,8 +55,8 @@ class _CropImgScreenState extends State<CropImgScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           insetPadding: const EdgeInsets.symmetric(horizontal: 95),
-          shape: RoundedRectangleBorder( // Custom shape
-            borderRadius: BorderRadius.circular(10.0), // Adjust border radius as needed
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
           ),
           content: const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
