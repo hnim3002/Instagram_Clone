@@ -294,6 +294,64 @@ class FirestoreMethods {
     return updatedCombinedData;
   }
 
+  Future<List<Map<String, dynamic>>> initCommentData(String postId, List<int> reply) async {
+    List<Map<String, dynamic>> updatedCombinedData = [];
+    QuerySnapshot postsSnapshot = await _firestore
+        .collection(kKeyCollectionPosts)
+        .doc(postId)
+        .collection(kKeySubCollectionComment)
+        .where(kKeyParentId, isEqualTo: "")
+        .orderBy(kKeyTimestamp, descending: false)
+        .get();
+
+    List<String> userIds =
+    postsSnapshot.docs.map((doc) => doc[kKeySenderId] as String).toList();
+
+    if (userIds.isEmpty) {
+      return [];
+    }
+
+    // Perform a query to fetch user data based on userIds
+    QuerySnapshot usersSnapshot = await _firestore
+        .collection(kKeyCollectionUsers)
+        .where(FieldPath.documentId, whereIn: userIds)
+        .get();
+
+    // Create a map to store user data
+    Map<String, Map<String, dynamic>> userDataMap = {};
+
+    List<int> a = [];
+    for (var doc in usersSnapshot.docs) {
+      userDataMap[doc.id] = doc.data() as Map<String, dynamic>;
+    }
+
+    for (var postDoc in postsSnapshot.docs) {
+      var commentsRef = _firestore
+          .collection(kKeyCollectionPosts)
+          .doc(postId)
+          .collection(kKeySubCollectionComment)
+          .where(kKeyParentId, isEqualTo: postDoc.id)
+          .orderBy(kKeyTimestamp, descending: false);
+
+      int numberOfReply = (await commentsRef.get()).size;
+      a.add(numberOfReply);
+      Map<String, dynamic> postData = postDoc.data() as Map<String, dynamic>;
+      String? userId = postData[kKeySenderId] as String?;
+      Map<String, dynamic> userData = userDataMap[userId] ?? {};
+
+      updatedCombinedData.add({
+        'post': postData,
+        'user': userData,
+      });
+    }
+
+    reply.addAll(a);
+
+    return updatedCombinedData;
+  }
+
+
+
   Future<List<Map<String, dynamic>>> getReplyData(
       String postId, String commentId) async {
     List<Map<String, dynamic>> updatedCombinedData = [];

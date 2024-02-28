@@ -1,12 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:instagram_clon/Widgets/easeIn_animation_widget.dart';
 import 'package:instagram_clon/providers/comments_state_provider.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-
 import '../Widgets/comment_card_layout_widgets.dart';
 import '../providers/comments_provider.dart';
 import '../providers/posts_provider.dart';
@@ -14,8 +10,6 @@ import '../resources/firestore_method.dart';
 import '../utils/color_schemes.dart';
 import '../utils/const.dart';
 import '../utils/utils.dart';
-import '../Widgets/comment_card_widgets.dart';
-import '../Widgets/post_card_widgets.dart';
 
 class PostCommentLayout extends StatefulWidget {
   final String userPhoto;
@@ -43,12 +37,16 @@ class _PostCommentLayoutState extends State<PostCommentLayout> {
   Future<void> getCommentData() async {
     await Provider.of<CommentsProvider>(context, listen: false)
         .refreshCommentData();
+  }
 
+  Future<void> initCommentData() async {
+    await Provider.of<CommentsProvider>(context, listen: false).initData();
   }
 
   Future<void> getReplyData() async {
     await Provider.of<CommentsProvider>(context, listen: false).getReplyData();
   }
+
   void moveUserToTop(List<Map<String, dynamic>> list, String specificUserId) {
     // Find the index of the user with the specific ID
     int index = list.indexWhere((element) =>
@@ -101,7 +99,8 @@ class _PostCommentLayoutState extends State<PostCommentLayout> {
   }
 
   Future<void> getNumberOfReply() async {
-    await Provider.of<CommentsProvider>(context, listen: false).updateNumberOfReply();
+    await Provider.of<CommentsProvider>(context, listen: false)
+        .updateNumberOfReply();
   }
 
   void onReplyPress() {
@@ -118,9 +117,9 @@ class _PostCommentLayoutState extends State<PostCommentLayout> {
 
   @override
   void initState() {
-    Provider.of<CommentsProvider>(context, listen: false).setPostId(widget.postId);
-    getCommentData();
-    getNumberOfReply();
+    Provider.of<CommentsProvider>(context, listen: false)
+        .setPostId(widget.postId);
+    initCommentData();
     userImageProvider = CachedNetworkImageProvider(widget.userPhoto);
     super.initState();
   }
@@ -153,132 +152,52 @@ class _PostCommentLayoutState extends State<PostCommentLayout> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const Divider(),
-
             Expanded(
               child: Provider.of<CommentsProvider>(context).commentData == null
-                  ? Container()
-                  : ListView.builder(
-                      itemCount:
-                          Provider.of<CommentsProvider>(context, listen: false)
+                  ? const Center(
+                      child: SizedBox(
+                        width: 50.0, // Adjust width as needed
+                        height: 50.0, // Adjust height as needed
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  : Provider.of<CommentsProvider>(context).commentData!.isEmpty
+                      ? const Center(
+                          child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "No comments yet",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 23),
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Text(
+                              "Start the conversation.",
+                              style:
+                                  TextStyle(fontSize: 13, color: Colors.grey),
+                            )
+                          ],
+                        ))
+                      : ListView.builder(
+                          itemCount: Provider.of<CommentsProvider>(context)
                               .commentData!
                               .length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return CommentCardLayout(
-                          commentData: Provider.of<CommentsProvider>(context,
-                                  listen: false)
-                              .commentData![index],
-                          uid: widget.uid,
-                          onReplyPress: () => onReplyPress(),
-                          index: index,
-                        );
-                      },
-                    ),
+                          itemBuilder: (BuildContext context, int index) {
+                            return CommentCardLayout(
+                              commentData: Provider.of<CommentsProvider>(
+                                      context,
+                                      listen: false)
+                                  .commentData![index],
+                              uid: widget.uid,
+                              onReplyPress: () => onReplyPress(),
+                              index: index,
+                            );
+                          },
+                        ),
             ),
-
-            // Expanded(
-            //   child: ValueListenableBuilder<List<Map<String, dynamic>>?>(
-            //     valueListenable: commentDataFuture,
-            //     builder: (BuildContext context,
-            //         List<Map<String, dynamic>>? value, Widget? child) {
-            //       if (value == null) {
-            //         return const Center(
-            //           child: SizedBox(
-            //             width: 50.0, // Adjust width as needed
-            //             height: 50.0, // Adjust height as needed
-            //             child: CircularProgressIndicator(),
-            //           ),
-            //         );
-            //       }
-            //       if (value.isEmpty) {
-            //         return const Center(
-            //             child: Column(
-            //           mainAxisAlignment: MainAxisAlignment.center,
-            //           children: [
-            //             Text(
-            //               "No comments yet",
-            //               style: TextStyle(
-            //                   fontWeight: FontWeight.bold, fontSize: 23),
-            //             ),
-            //             SizedBox(
-            //               height: 10,
-            //             ),
-            //             Text(
-            //               "Start the conversation.",
-            //               style: TextStyle(fontSize: 13, color: Colors.grey),
-            //             )
-            //           ],
-            //         ));
-            //       }
-            //       return ListView.builder(
-            //         itemCount: value.length,
-            //         itemBuilder: (BuildContext context, int index) {
-            //           print("listView.rebuli");
-            //           return CommentCardLayout(
-            //             commentData: value[index],
-            //             uid: widget.uid,
-            //             onReplyPress: () => onReplyPress(), index: index,
-            //           );
-            //         },
-            //       );
-            //     },
-            //   ),
-            // ),
-
-            // Expanded(
-            //   child: FutureBuilder<List<Map<String, dynamic>>>(
-            //     key: UniqueKey(),
-            //     future: commentDataFuture,
-            //     builder: (BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
-            //       if (snapshot.connectionState == ConnectionState.waiting) {
-            //         // Show a loading indicator while fetching data
-            //         return const Center(
-            //           child: SizedBox(
-            //             width: 50.0, // Adjust width as needed
-            //             height: 50.0, // Adjust height as needed
-            //             child: CircularProgressIndicator(),
-            //           ),
-            //         );
-            //       }
-            //       if(snapshot.hasError) {
-            //         return Text('Error: ${snapshot.error}');
-            //       }
-            //       if(snapshot.data!.isNotEmpty) {
-            //         return ListView.builder(
-            //           itemCount: snapshot.data!.length,
-            //           itemBuilder: (BuildContext context, int index) {
-            //             return CommentCard(
-            //               commentData: snapshot.data![index],
-            //               uid: widget.uid,
-            //               onReplyPress:() => onReplyPress(),
-            //             );
-            //           },
-            //         );
-            //       }
-            //       return const Center(
-            //         child: Column(
-            //           mainAxisAlignment: MainAxisAlignment.center,
-            //           children: [
-            //             Text(
-            //               "No comments yet",
-            //               style: TextStyle(
-            //                 fontWeight: FontWeight.bold,
-            //                 fontSize: 23
-            //               ),
-            //             ),
-            //             SizedBox(height: 10,),
-            //             Text(
-            //               "Start the conversation.",
-            //               style: TextStyle(
-            //                 fontSize: 13,
-            //                 color: Colors.grey
-            //               ),
-            //             )
-            //           ],
-            //         )
-            //       );
-            //     },
-            //   ),
-            // ),
             Column(
               children: [
                 Visibility(
@@ -388,8 +307,9 @@ class _PostCommentLayoutState extends State<PostCommentLayout> {
                           width: 45,
                           child: ElevatedButton(
                             onPressed: () async {
-
-                              if (!Provider.of<CommentsStateProvider>(context, listen: false).isReplying) {
+                              if (!Provider.of<CommentsStateProvider>(context,
+                                      listen: false)
+                                  .isReplying) {
                                 await uploadComment(widget.postId, widget.uid,
                                     commentController.text);
                                 await getNumberOfReply();
@@ -412,7 +332,6 @@ class _PostCommentLayoutState extends State<PostCommentLayout> {
                                             .commentIndex!]["user"][kKeyUsersId]);
                                 await getNumberOfReply();
                                 getReplyData();
-
                               }
                               commentController.clear();
                               refreshNumberOfComment();

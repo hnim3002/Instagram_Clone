@@ -59,6 +59,9 @@ class MyApp extends StatelessWidget {
           ),
           darkTheme: ThemeData.dark(useMaterial3: true)
               .copyWith(scaffoldBackgroundColor: Colors.black),
+          routes: {
+            '/home_screen': (context) => const MobileScreenLayout(),
+          },
           onGenerateRoute: (settings) {
             switch (settings.name) {
               case '/post-screen':

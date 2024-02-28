@@ -353,6 +353,7 @@ class _PostCardState extends State<PostCard> {
         }).then((_) {
       Provider.of<CommentsProvider>(context, listen: false).numberOfReply = [];
       Provider.of<CommentsProvider>(context, listen: false).deleteCommentData();
+      Provider.of<CommentsProvider>(context, listen: false).deleteReplyData();
     });
   }
 }

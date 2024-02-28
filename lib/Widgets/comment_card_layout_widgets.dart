@@ -132,21 +132,7 @@ class _CommentCardLayoutState extends State<CommentCardLayout> {
                       padding: const EdgeInsets.only(left: 50),
                       child: Column(children: replyList()),
                     )
-            // : ValueListenableBuilder(
-            //     valueListenable: replyDataFuture,
-            //     builder: (BuildContext context, value, Widget? child) {
-            //       if (value == null) {
-            //         return const SizedBox();
-            //       }
-            //       return Transform.scale(
-            //         scale: 0.95,
-            //         child: Padding(
-            //           padding: const EdgeInsets.only(left: 50),
-            //           child: Column(children: replyList()),
-            //         ),
-            //       );
-            //     },
-            //   ),
+
             )
       ],
     );

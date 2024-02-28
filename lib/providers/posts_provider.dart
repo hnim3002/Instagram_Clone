@@ -20,8 +20,6 @@ class PostsProvider with ChangeNotifier {
   Future<void> refreshPostData() async {
     List<Map<String, dynamic>>?  commentData = await _firestoreMethods.getPostsData(listOfLike, numberOfComment);
     _postData = commentData;
-    print(listOfLike);
-    print(numberOfComment);
     notifyListeners();
   }
 
@@ -39,7 +37,6 @@ class PostsProvider with ChangeNotifier {
 
   Future<void> refreshNumberOfLike() async {
     listOfLike = await _firestoreMethods.getNumberOfLike();
-
     notifyListeners();
   }
 }

@@ -9,6 +9,8 @@ import 'package:provider/provider.dart';
 
 import '../../Widgets/custom_button_widgets.dart';
 import '../../models/user.dart' as model;
+import '../../models/user.dart';
+import '../../providers/posts_provider.dart';
 import '../../providers/user_provider.dart';
 
 class PostingScreen extends StatefulWidget {
@@ -92,6 +94,47 @@ class _PostingScreenState extends State<PostingScreen> {
     Navigator.pop(context);
   }
 
+  Future<void> getPostData() async {
+    await Provider.of<PostsProvider>(context, listen: false).refreshPostData();
+  }
+
+  Future<void> _showDialog(BuildContext context, User user) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent user from dismissing dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 95),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          content: const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 20.0, // Set the desired width
+                  height: 20.0, // Set the desired height
+                  child: CircularProgressIndicator(strokeWidth: 3.0),
+                ),
+                SizedBox(width: 10,),
+                Text('Processing...'), // Processing text
+              ],
+            ),
+          ),
+
+        );
+      },
+    );
+    
+    await postImage(user.uid.toString(), user.username.toString(), user.photoUrl.toString());
+    await getPostData();
+    if (!context.mounted) return;
+    Navigator.of(context).pop();
+    Navigator.popUntil(context, (route) => route.isFirst);
+  }
+
   @override
   Widget build(BuildContext context) {
     final model.User? user = Provider.of<UserProvider>(context).user;
@@ -170,9 +213,7 @@ class _PostingScreenState extends State<PostingScreen> {
                           ],
                         ),
                         onPressed: () {
-                          if(user != null) {
-                            postImage(user.uid.toString(), user.username.toString(), user.photoUrl.toString());
-                          }
+                          _showDialog(context, user!);
                         },
                       ),
                     ),

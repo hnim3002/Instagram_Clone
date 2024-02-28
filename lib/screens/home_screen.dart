@@ -22,7 +22,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   int i = 0;
   late StreamSubscription<QuerySnapshot> _postsSubscription;
   List<Map<String, dynamic>> combinedData = [];
@@ -30,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    getPostsData();
     updatePostDataListener();
     super.initState();
   }
@@ -46,13 +44,14 @@ class _HomeScreenState extends State<HomeScreen> {
         .collection(kKeyCollectionPosts)
         .snapshots()
         .listen((QuerySnapshot snapshot) async {
-          print(snapshot.size);
+      print(snapshot.size);
 
       for (var updatedPost in snapshot.docs) {
-
         String updatedPostId = updatedPost.id;
-        Map<String, dynamic> updatedPostData = updatedPost.data() as Map<String, dynamic>;
-        int index = combinedData.indexWhere((item) => item['post'][kKeyPostId] == updatedPostId);
+        Map<String, dynamic> updatedPostData =
+            updatedPost.data() as Map<String, dynamic>;
+        int index = combinedData
+            .indexWhere((item) => item['post'][kKeyPostId] == updatedPostId);
         if (index != -1) {
           combinedData[index]['post'] = updatedPostData;
         }
@@ -60,11 +59,9 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-
   Future<void> getPostData() async {
     await Provider.of<PostsProvider>(context, listen: false).refreshPostData();
   }
-
 
   Future<void> getPostsData() async {
     QuerySnapshot postsSnapshot = await FirebaseFirestore.instance
@@ -73,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .get();
 
     List<String> userIds =
-    postsSnapshot.docs.map((doc) => doc[kKeyUsersId] as String).toList();
+        postsSnapshot.docs.map((doc) => doc[kKeyUsersId] as String).toList();
 
     // Perform a query to fetch user data based on userIds
     QuerySnapshot usersSnapshot = await FirebaseFirestore.instance
@@ -109,17 +106,18 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
     final model.User? user = Provider.of<UserProvider>(context).user;
-    print(Provider.of<PostsProvider>(context, listen: false).listOfLike);
-    print(Provider.of<PostsProvider>(context, listen: false).numberOfComment);
+    combinedData = Provider.of<PostsProvider>(context).postData!;
     return Scaffold(
+      key: UniqueKey(),
       resizeToAvoidBottomInset: true,
       body: RefreshIndicator(
-        onRefresh: getPostData,
+        onRefresh: () { return getPostData();  },
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
@@ -149,11 +147,13 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  //print(Provider.of<PostsProvider>(context, listen: false).postData?.length);
                   return PostCard(
-                      combinedData: combinedData[index], user: user!, index: index,);
+                    combinedData: combinedData[index],
+                    user: user!,
+                    index: index,
+                  );
                 },
-                childCount:combinedData.length,
+                childCount: combinedData.length,
               ),
             ),
           ],
