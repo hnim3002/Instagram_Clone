@@ -107,11 +107,6 @@ class _PostCardState extends State<PostCard> {
     super.dispose();
   }
 
-  Future<void> getPostData() async {
-    //await Provider.of<PostsProvider>(context, listen: false).updatePostData();
-    //await Provider.of<PostsProvider>(context, listen: false).refreshPostData();
-  }
-
   Future<void> getLikeData() async {
     DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
         .collection(kKeyCollectionPosts)
@@ -127,6 +122,37 @@ class _PostCardState extends State<PostCard> {
     } else {
       print('Document does not exist');
     }
+  }
+
+  Future<void> showDeleteDialog(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent user from dismissing dialog
+      builder: (BuildContext context) {
+        return Dialog(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              InkWell(
+                onTap: () {
+                  FirestoreMethods().deletePost(widget.combinedData["post"][kKeyPostId]);
+                  getPostData();
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  child: Text("Delete"),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> getPostData() async {
+    await Provider.of<PostsProvider>(context, listen: false).refreshPostData();
   }
 
   @override
@@ -159,7 +185,9 @@ class _PostCardState extends State<PostCard> {
                         enableFeedback: false,
                         color: isDarkMode ? Colors.white : Colors.black,
                         iconSize: 25,
-                        onPressed: () {},
+                        onPressed: () {
+                          showDeleteDialog(context);
+                        },
                         icon: const Icon(
                           Symbols.more_vert_rounded,
                           weight: 500,
@@ -183,7 +211,6 @@ class _PostCardState extends State<PostCard> {
                         widget.combinedData["post"][kKeyPostId],
                         widget.user.uid!,
                         isLike);
-                    getPostData();
                   }
                 },
                 child: Stack(
@@ -249,7 +276,6 @@ class _PostCardState extends State<PostCard> {
                                 widget.combinedData["post"][kKeyPostId],
                                 widget.user.uid!,
                                 isLike);
-                            getPostData();
                           },
                           icon: isLike
                               ? const Icon(
@@ -312,6 +338,7 @@ class _PostCardState extends State<PostCard> {
                     GestureDetector(
                       onTap: () {
                         Provider.of<PostsProvider>(context, listen: false).postIndex = widget.index;
+                        showBottomSheet();
                       },
                       child: Text(
                         "View all ${Provider.of<PostsProvider>(context).numberOfComment[widget.index]} comment",

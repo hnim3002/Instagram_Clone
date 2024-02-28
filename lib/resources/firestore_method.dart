@@ -1,3 +1,4 @@
+
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -421,4 +422,16 @@ class FirestoreMethods {
 
     return reply;
   }
+
+  Future<String> deletePost(String postId) async {
+    String error = "Some thing when wrong";
+    try {
+      await _firestore.collection(kKeyCollectionPosts).doc(postId).delete();
+    } catch (e) {
+      error = e.toString();
+    }
+    return error;
+  }
+
+
 }
