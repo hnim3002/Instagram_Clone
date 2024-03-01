@@ -20,7 +20,11 @@ class PostCard extends StatefulWidget {
   final User user;
   final Map<String, dynamic> combinedData;
   final int index;
-  const PostCard({super.key, required this.combinedData, required this.user, required this.index});
+  const PostCard(
+      {super.key,
+      required this.combinedData,
+      required this.user,
+      required this.index});
 
   @override
   State<PostCard> createState() => _PostCardState();
@@ -30,6 +34,7 @@ class _PostCardState extends State<PostCard> {
   bool isSmallLike = false;
   bool isLike = false;
   bool isAnimation = false;
+  bool isFollowing = false;
   int numberOfLike = 0;
   int numberOfComment = 0;
   late String postPhotoUrl;
@@ -54,8 +59,11 @@ class _PostCardState extends State<PostCard> {
     userName = widget.combinedData["user"][kKeyUserName];
     caption = widget.combinedData["post"][kKeyCaption];
     like = widget.combinedData["post"][kKeyLike];
+    if (widget.combinedData["user"][kKeyUserFollowers]
+        .contains(widget.user.uid)) {
+      isFollowing = true;
+    }
     numberOfLike = like.length;
-    numberOfComment = widget.combinedData["comment"];
     if (like.contains(widget.user.uid)) {
       isLike = true;
     }
@@ -94,7 +102,6 @@ class _PostCardState extends State<PostCard> {
       }
     }
   }
-
 
   @override
   void dispose() {
@@ -135,12 +142,14 @@ class _PostCardState extends State<PostCard> {
             children: [
               InkWell(
                 onTap: () {
-                  FirestoreMethods().deletePost(widget.combinedData["post"][kKeyPostId]);
+                  FirestoreMethods()
+                      .deletePost(widget.combinedData["post"][kKeyPostId]);
                   getPostData();
                   Navigator.pop(context);
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   child: Text("Delete"),
                 ),
               ),
@@ -197,7 +206,8 @@ class _PostCardState extends State<PostCard> {
               ),
               GestureDetector(
                 onDoubleTap: () async {
-                  Provider.of<PostsProvider>(context, listen: false).postIndex = widget.index;
+                  Provider.of<PostsProvider>(context, listen: false).postIndex =
+                      widget.index;
                   setState(() {
                     isAnimation = true;
                     if (!isLike) {
@@ -260,7 +270,8 @@ class _PostCardState extends State<PostCard> {
                           color: isDarkMode ? Colors.white : Colors.black,
                           iconSize: 25,
                           onPressed: () async {
-                            Provider.of<PostsProvider>(context, listen: false).postIndex = widget.index;
+                            Provider.of<PostsProvider>(context, listen: false)
+                                .postIndex = widget.index;
                             setState(() {
                               isSmallLike = true;
                               if (isLike) {
@@ -271,17 +282,17 @@ class _PostCardState extends State<PostCard> {
                                 isLike = true;
                               }
                             });
-
+                            Provider.of<PostsProvider>(context, listen: false).refreshNumberOfLike(isLike, widget.user.uid!);
                             await FirestoreMethods().updateLikePost(
                                 widget.combinedData["post"][kKeyPostId],
                                 widget.user.uid!,
                                 isLike);
                           },
-                          icon: isLike
+                          icon: Provider.of<PostsProvider>(context).listOfLike[widget.index].contains(widget.user.uid!)
                               ? const Icon(
                                   Symbols.favorite,
                                   fill: 1,
-                                  color: Colors.red,
+                                  color: Colors.red
                                 )
                               : const Icon(
                                   Symbols.favorite,
@@ -295,7 +306,8 @@ class _PostCardState extends State<PostCard> {
                         color: isDarkMode ? Colors.white : Colors.black,
                         iconSize: 25,
                         onPressed: () {
-                          Provider.of<PostsProvider>(context, listen: false).postIndex = widget.index;
+                          Provider.of<PostsProvider>(context, listen: false)
+                              .postIndex = widget.index;
                           showBottomSheet();
                         },
                         icon: const Icon(
@@ -337,11 +349,12 @@ class _PostCardState extends State<PostCard> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        Provider.of<PostsProvider>(context, listen: false).postIndex = widget.index;
+                        Provider.of<PostsProvider>(context, listen: false)
+                            .postIndex = widget.index;
                         showBottomSheet();
                       },
                       child: Text(
-                        "View all ${Provider.of<PostsProvider>(context).numberOfComment[widget.index]} comment",
+                        "View all ${Provider.of<PostsProvider>(context).listOfComment[widget.index]} comment",
                         style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                       ),
                     ),
@@ -359,9 +372,6 @@ class _PostCardState extends State<PostCard> {
           )
         : const PostCardPlaceHolder();
   }
-
-
-
 
   void showBottomSheet() {
     showModalBottomSheet<void>(
