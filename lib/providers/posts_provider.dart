@@ -8,50 +8,49 @@ import '../models/user.dart';
 
 class PostsProvider with ChangeNotifier {
   List<Map<String, dynamic>>? _postData = [];
-  List<List<dynamic>> listOfLike = [];
-  List<int> listOfComment = [];
-  List<Map<String, dynamic>>? _subPostData = [];
-  List<List<dynamic>> subListOfLike = [];
-  List<int> subListOfComment = [];
+  List<Map<String, dynamic>> _subPostData = [];
   final FirestoreMethods _firestoreMethods = FirestoreMethods();
   int? postIndex;
 
 
+  List<Map<String, dynamic>> get subPostData => _subPostData;
+
   List<Map<String, dynamic>>? get postData => _postData;
+
+  Future<int> initPostData() async {
+    List<Map<String, dynamic>>?  commentData = await _firestoreMethods.getPostsData();
+    _postData = commentData;
+    notifyListeners();
+    return commentData.length;
+  }
 
 
   Future<void> refreshPostData() async {
-    List<Map<String, dynamic>>?  commentData = await _firestoreMethods.getPostsData(listOfLike, listOfComment);
+    List<Map<String, dynamic>>?  commentData = await _firestoreMethods.getPostsData();
     _postData = commentData;
     notifyListeners();
   }
 
-  Future<void> updatePostData(int index, Map<String, dynamic> updatedPostData) async {
-    // Map<String, dynamic> postData = await _firestoreMethods.updatePostData(_postData?[postIndex!]['post'][kKeyPostId]);
-
-    _postData![index]['post'] = updatedPostData;
-    // _postData![postIndex!] = postData;
-  }
 
   Future<void> refreshNumberOfComment() async {
-    listOfComment = await _firestoreMethods.getNumberOfComment();
-    _postData![postIndex!]['comment'] = updatedPostData;
+    _postData![postIndex!]['comment'] = _postData![postIndex!]['comment'] + 1;
     notifyListeners();
   }
 
   Future<void> refreshNumberOfLike(bool isLike, String uid) async {
     if(isLike) {
-      listOfLike[postIndex!].add(uid);
+      _postData![postIndex!]['post'][kKeyLike].add(uid);
     } else {
-      listOfLike[postIndex!].remove(uid);
+      _postData![postIndex!]['post'][kKeyLike].remove(uid);
     }
     notifyListeners();
   }
 
-  Future<void> refreshSubPostData(String uid) async {
-    List<Map<String, dynamic>>?  commentData = await _firestoreMethods.getUserPost(uid, subListOfLike, subListOfComment);
+  Future<int> initSubPostData(String uid) async {
+    List<Map<String, dynamic>>?  commentData = await _firestoreMethods.getUserPost(uid);
     _subPostData = commentData;
     notifyListeners();
+    return commentData.length;
   }
 
 

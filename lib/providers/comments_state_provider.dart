@@ -8,6 +8,8 @@ import '../models/user.dart';
 class CommentsStateProvider with ChangeNotifier {
   bool _isReplying = false;
   bool _isViewReply = false;
+  String commentId = '';
+  Map<String, dynamic> userComment = {};
   int? commentIndex;
 
   bool get isReplying => _isReplying;

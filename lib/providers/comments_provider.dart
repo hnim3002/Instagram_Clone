@@ -12,6 +12,7 @@ class CommentsProvider with ChangeNotifier {
   List<Map<String, dynamic>>? _commentData;
   Map<String, dynamic> _replyData = {};
   final FirestoreMethods _firestoreMethods = FirestoreMethods();
+  String commentId = '';
   List<int> numberOfReply = [];
   int? commentIndex;
   int? replyIndex;
@@ -61,4 +62,5 @@ class CommentsProvider with ChangeNotifier {
     numberOfReply = await _firestoreMethods.getNumberOfReply(_postId!);
     notifyListeners();
   }
+
 }

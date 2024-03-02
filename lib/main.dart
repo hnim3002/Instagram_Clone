@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:instagram_clon/providers/comments_provider.dart';
 import 'package:instagram_clon/providers/comments_state_provider.dart';
 import 'package:instagram_clon/providers/posts_provider.dart';
+import 'package:instagram_clon/providers/posts_state_provider.dart';
 import 'package:instagram_clon/providers/user_provider.dart';
 import 'package:instagram_clon/responsive/mobile_screen.dart';
 import 'package:instagram_clon/responsive/responsive_layout.dart';
@@ -50,6 +51,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
             create: (_) => PostsProvider()
+        ),
+        ChangeNotifierProvider(
+            create: (_) => PostsStateProvider()
         )
       ],
       child: MaterialApp(
