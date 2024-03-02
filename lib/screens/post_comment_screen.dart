@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:instagram_clon/providers/comments_state_provider.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import '../Widgets/comment_card_layout_widgets.dart';
 import '../providers/comments_provider.dart';
 import '../providers/posts_provider.dart';
@@ -63,8 +64,9 @@ class _PostCommentLayoutState extends State<PostCommentLayout> {
   Future<void> uploadComment(
       String postId, String uid, String commentContent) async {
     try {
+      Provider.of<CommentsProvider>(context, listen: false).commentId = const Uuid().v1();
       String res = await FirestoreMethods().uploadPostComment(
-          postId: postId, uid: uid, commentContent: commentContent);
+          postId: postId, uid: uid, commentContent: commentContent, collectionId: Provider.of<CommentsProvider>(context, listen: false).commentId);
       if (res == "success") {
       } else {
         if (!context.mounted) return;
@@ -307,6 +309,7 @@ class _PostCommentLayoutState extends State<PostCommentLayout> {
                           width: 45,
                           child: ElevatedButton(
                             onPressed: () async {
+                              refreshNumberOfComment();
                               if (!Provider.of<CommentsStateProvider>(context,
                                       listen: false)
                                   .isReplying) {
@@ -334,7 +337,7 @@ class _PostCommentLayoutState extends State<PostCommentLayout> {
                                 getReplyData();
                               }
                               commentController.clear();
-                              refreshNumberOfComment();
+
                             },
                             style: ElevatedButton.styleFrom(
                                 padding: EdgeInsets.zero,

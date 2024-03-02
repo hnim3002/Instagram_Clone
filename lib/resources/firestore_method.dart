@@ -112,10 +112,10 @@ class FirestoreMethods {
     required String postId,
     required String uid,
     required String commentContent,
+    required String collectionId,
   }) async {
     String error = "Some thing when wrong";
     try {
-      String collectionId = const Uuid().v1();
       CommentsPost commentsPost = CommentsPost(
         postId: postId,
         commentContent: commentContent,
@@ -206,10 +206,7 @@ class FirestoreMethods {
     return like;
   }
 
-  Future<List<Map<String, dynamic>>> getPostsData(
-      List<List<dynamic>> like, List<int> comment) async {
-    like.clear();
-    comment.clear();
+  Future<List<Map<String, dynamic>>> getPostsData() async {
     QuerySnapshot postsSnapshot = await FirebaseFirestore.instance
         .collection(kKeyCollectionPosts)
         .orderBy(kKeyTimestamp, descending: true)
@@ -238,10 +235,9 @@ class FirestoreMethods {
           .collection(kKeySubCollectionComment);
 
       int numberOfComments = (await commentsRef.get()).size;
-      comment.add(numberOfComments);
+
 
       Map<String, dynamic> postData = postDoc.data() as Map<String, dynamic>;
-      like.add(postData[kKeyLike]);
       String? userId = postData[kKeyUsersId] as String?;
       Map<String, dynamic> userData = userDataMap[userId] ?? {};
       updatedCombinedData.add(
@@ -500,12 +496,12 @@ class FirestoreMethods {
     return posts;
   }
 
-  Future<List<Map<String, dynamic>>> getUserPost(String uid, List<List<dynamic>> like, List<int> comment) async {
+  Future<List<Map<String, dynamic>>> getUserPost(String uid) async {
     List<Map<String, dynamic>> posts = [];
 
     QuerySnapshot postSnapshot = await _firestore
         .collection(kKeyCollectionPosts)
-        .orderBy(kKeyTimestamp, descending: false)
+        .orderBy(kKeyTimestamp, descending: true)
         .get();
 
     var usersSnapshot = await _firestore
@@ -515,7 +511,6 @@ class FirestoreMethods {
     Map<String, dynamic> user = {};
     if (usersSnapshot.exists) {
       user = usersSnapshot.data()!;
-      // Now you can access user data safely
     }
     for (var postDoc in postSnapshot.docs) {
       String userId = postDoc.get(kKeyUsersId);
@@ -526,17 +521,17 @@ class FirestoreMethods {
             .collection(kKeySubCollectionComment);
 
         int numberOfComments = (await commentsRef.get()).size;
-        comment.add(numberOfComments);
+
 
         Map<String, dynamic> postData = postDoc.data() as Map<String, dynamic>;
-        like.add(postData[kKeyLike]);
+
         posts.add({
           'post': postData,
           'user': user,
+          'comment' : numberOfComments
         });
       }
     }
-    print(posts);
 
     return posts;
   }

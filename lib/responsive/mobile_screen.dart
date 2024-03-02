@@ -129,6 +129,10 @@ class _MainScreenState extends State<MainScreen> {
               return CupertinoTabView(
                 builder: (context) => const SearchScreen(),
               );
+            case 4:
+              return CupertinoTabView(
+                builder: (context) => const UserProfileScreen(),
+              );
             default:
               return CupertinoTabView(
                 builder: (context) => Container(),

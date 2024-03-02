@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/comments_provider.dart';
 import '../providers/posts_provider.dart';
+import '../providers/posts_state_provider.dart';
 
 class ResponsiveLayout extends StatefulWidget {
   final Widget webScreenLayout;
@@ -40,7 +41,7 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout> {
   }
 
   Future<void> getPostData() async {
-    await Provider.of<PostsProvider>(context, listen: false).refreshPostData();
+    Provider.of<PostsStateProvider>(context, listen: false).setPostDataSize(await Provider.of<PostsProvider>(context, listen: false).initPostData());
   }
 
   @override
