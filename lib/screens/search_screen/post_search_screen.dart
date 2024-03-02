@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:instagram_clon/providers/posts_state_provider.dart';
 import 'package:instagram_clon/resources/firestore_method.dart';
 import 'package:provider/provider.dart';
 
@@ -15,36 +16,36 @@ class PostSearchScreen extends StatefulWidget {
 }
 
 class _PostSearchScreenState extends State<PostSearchScreen> {
-  Future<List<Map<String, dynamic>>> getPostData() async {
-    return await FirestoreMethods().getUserPost(widget.uid);
+
+
+
+  Future<void> getPostData() async {
+    Provider.of<PostsStateProvider>(context, listen: false).getSubPostDataSize(await Provider.of<PostsProvider>(context, listen: false).initSubPostData(widget.uid));
+  }
+
+  @override
+  void initState() {
+    getPostData();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+
+      ),
       body: SafeArea(
-          child: FutureBuilder(
-              future: getPostData(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
-                if (snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No users found'));
-                }
-                return ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return PostCard(
-                        combinedData: snapshot.data![index],
-                        user: Provider.of<UserProvider>(context).user!,
-                        index: index,
-                      );
-                    });
-              })),
+          child: ListView.builder(
+              itemCount:  Provider.of<PostsStateProvider>(context).subPostDataSize,
+              itemBuilder: (context, index) {
+                return PostCard(
+                  user: Provider.of<UserProvider>(context).user!,
+                  index: index,
+                  isSub: true,
+                );
+              }),
+      ),
     );
   }
 }
