@@ -5,10 +5,14 @@ const kKeyEmail = "email";
 const kKeyCollectionUsers = "users";
 const kKeyUserName = "username";
 const kKeyFullName = "fullname";
+const kKeyUserPost = "post";
 const kKeyUsersId = "uid";
 const kKeyUserPhoto = "userPhotoUrl";
 const kKeyUserFollowers = "followers";
 const kKeyUserFollowing = "following";
+const kKeyUserBio = "bio";
+const kKeyUserSave = "save";
+const kKeyUserBlock = "block";
 const kKeyFMCToken = "fcmToken";
 
 

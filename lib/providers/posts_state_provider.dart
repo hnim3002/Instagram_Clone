@@ -21,5 +21,6 @@ class PostsStateProvider with ChangeNotifier {
 
   void getSubPostDataSize(int value) {
     _subPostDataSize = value;
+    notifyListeners();
   }
 }

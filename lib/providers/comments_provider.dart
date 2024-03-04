@@ -40,7 +40,6 @@ class CommentsProvider with ChangeNotifier {
     List<Map<String, dynamic>>? commentData =
         await _firestoreMethods.initCommentData(_postId!, numberOfReply);
     _commentData = commentData;
-    print(_commentData);
     notifyListeners();
   }
 

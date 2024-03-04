@@ -6,11 +6,13 @@ import 'package:instagram_clon/Widgets/custom_divider_widgets.dart';
 import 'package:instagram_clon/resources/firestore_method.dart';
 import 'package:instagram_clon/utils/utils.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../Widgets/custom_button_widgets.dart';
 import '../../models/user.dart' as model;
 import '../../models/user.dart';
 import '../../providers/posts_provider.dart';
+import '../../providers/posts_state_provider.dart';
 import '../../providers/user_provider.dart';
 
 class PostingScreen extends StatefulWidget {
@@ -58,21 +60,21 @@ class _PostingScreenState extends State<PostingScreen> {
   Future<void> postImage(
       String uid, String username, String userPhotoUrl) async {
     try {
+      String postId = const Uuid().v1();
       String res = await FirestoreMethods().uploadPost(
           caption: _postController.text.trim(),
           username: username,
           file:  await compressImage(widget.file, 80),
           uid: uid,
-          userPhotoUrl: userPhotoUrl);
+          userPhotoUrl: userPhotoUrl,
+          postId: postId);
+      await FirestoreMethods().updateUserPost(postId, uid, true);
       if(res == "success") {
-        if (!context.mounted) return;
-        showSnackBar("Posted!", context);
       } else {
-        if (!context.mounted) return;
-        showSnackBar(res , context);
+        print(res);
       }
     } catch (e) {
-      showSnackBar(e.toString() , context);
+      print(e);
     }
   }
 
@@ -95,7 +97,7 @@ class _PostingScreenState extends State<PostingScreen> {
   }
 
   Future<void> getPostData() async {
-    await Provider.of<PostsProvider>(context, listen: false).refreshPostData();
+    Provider.of<PostsStateProvider>(context, listen: false).setPostDataSize(await Provider.of<PostsProvider>(context, listen: false).initPostData());
   }
 
   Future<void> _showDialog(BuildContext context, User user) async {

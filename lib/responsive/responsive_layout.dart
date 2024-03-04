@@ -22,14 +22,10 @@ class ResponsiveLayout extends StatefulWidget {
 
 class _ResponsiveLayoutState extends State<ResponsiveLayout> {
 
-  @override
-  void didChangeDependencies() {
-    addData();
-    super.didChangeDependencies();
-  }
 
   @override
   void initState() {
+    addData();
     getPostData();
     super.initState();
 

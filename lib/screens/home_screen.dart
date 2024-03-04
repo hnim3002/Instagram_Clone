@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:instagram_clon/providers/user_provider.dart';
 import 'package:instagram_clon/utils/const.dart';
@@ -58,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // }
 
   Future<void> getPostData() async {
-    await Provider.of<PostsProvider>(context, listen: false).refreshPostData();
+    await Provider.of<PostsProvider>(context, listen: false).initPostData();
   }
 
   @override
@@ -67,50 +68,53 @@ class _HomeScreenState extends State<HomeScreen> {
         MediaQuery.of(context).platformBrightness == Brightness.dark;
     final model.User? user = Provider.of<UserProvider>(context).user;
     return Scaffold(
+      extendBody: true,
       key: UniqueKey(),
       resizeToAvoidBottomInset: true,
-      body: RefreshIndicator(
-        onRefresh: () {
-          return getPostData();
-        },
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              backgroundColor: isDarkMode ? Colors.black : primaryColor,
-              title: SvgPicture.asset(
-                height: 30,
-                "assets/images/ic_instagram.svg",
-                colorFilter: ColorFilter.mode(
-                    isDarkMode ? primaryColor : Colors.black, BlendMode.srcIn),
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () {
+            return getPostData();
+          },
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                backgroundColor: isDarkMode ? Colors.black : primaryColor,
+                title: SvgPicture.asset(
+                  height: 30,
+                  "assets/images/ic_instagram.svg",
+                  colorFilter: ColorFilter.mode(
+                      isDarkMode ? primaryColor : Colors.black, BlendMode.srcIn),
+                ),
+                actions: [
+                  IconButton(
+                      visualDensity: VisualDensity.compact,
+                      highlightColor: Colors.transparent,
+                      enableFeedback: false,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                      iconSize: 25,
+                      onPressed: () {},
+                      icon: const Icon(
+                        Symbols.chat_rounded,
+                        weight: 500,
+                      )),
+                ],
+                floating: true,
+                snap: true,
               ),
-              actions: [
-                IconButton(
-                    visualDensity: VisualDensity.compact,
-                    highlightColor: Colors.transparent,
-                    enableFeedback: false,
-                    color: isDarkMode ? Colors.white : Colors.black,
-                    iconSize: 25,
-                    onPressed: () {},
-                    icon: const Icon(
-                      Symbols.chat_rounded,
-                      weight: 500,
-                    )),
-              ],
-              floating: true,
-              snap: true,
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return PostCard(
-                    user: user!,
-                    index: index,
-                  );
-                },
-                childCount: Provider.of<PostsStateProvider>(context).postDataSize,
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return PostCard(
+                      user: user!,
+                      index: index,
+                    );
+                  },
+                  childCount: Provider.of<PostsStateProvider>(context).postDataSize,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
