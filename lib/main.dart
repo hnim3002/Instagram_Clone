@@ -36,7 +36,8 @@ class MyApp extends StatelessWidget {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       systemNavigationBarColor:
           Colors.white, // set color of system navigation bar
-      statusBarColor: Colors.white, // transparent status bar
+      statusBarColor: Colors.white,
+      statusBarIconBrightness: Brightness.dark, // Set the status bar text color// transparent status bar
     ));
     return MultiProvider(
       providers: [

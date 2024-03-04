@@ -11,18 +11,18 @@ import '../models/post.dart';
 class FirestoreMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<String> uploadPost(
-      {required String caption,
-      required String username,
-      required Uint8List file,
-      required String uid,
-      required String userPhotoUrl}) async {
+  Future<String> uploadPost({
+    required String caption,
+    required String username,
+    required Uint8List file,
+    required String uid,
+    required String userPhotoUrl,
+    required String postId,
+  }) async {
     String res = "Some error occurred";
     try {
       String postPhotoUrl =
           await StorageMethods().uploadImageToStorage("post", file, true);
-
-      String postId = const Uuid().v1();
 
       Post post = Post(
           postId: postId,
@@ -43,15 +43,37 @@ class FirestoreMethods {
     return res;
   }
 
+  Future<void> updateUserPost(String postId, String uid, bool addPost) async {
+    try {
+      if (addPost) {
+        await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
+          kKeyUserPost: FieldValue.arrayUnion([postId]),
+        });
+      } else {
+        await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
+          kKeyUserPost: FieldValue.arrayRemove([postId]),
+        });
+      }
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
   Future<void> updateLikePost(String postId, String uid, bool isLike) async {
     try {
       if (isLike) {
         await _firestore.collection(kKeyCollectionPosts).doc(postId).update({
           kKeyLike: FieldValue.arrayUnion([uid]),
         });
+        await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
+          kKeyLike: FieldValue.arrayUnion([postId]),
+        });
       } else {
         await _firestore.collection(kKeyCollectionPosts).doc(postId).update({
           kKeyLike: FieldValue.arrayRemove([uid]),
+        });
+        await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
+          kKeyLike: FieldValue.arrayRemove([postId]),
         });
       }
     } catch (e) {
@@ -86,20 +108,27 @@ class FirestoreMethods {
     }
   }
 
-  Future<void> updateUserFollowing(String uid, bool isFollowing, String uidFollowing) async {
+  Future<void> updateUserFollowing(
+      String uid, bool isFollowing, String uidFollowing) async {
     try {
       if (isFollowing) {
         await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
           kKeyUserFollowing: FieldValue.arrayUnion([uidFollowing]),
         });
-        await _firestore.collection(kKeyCollectionUsers).doc(uidFollowing).update({
+        await _firestore
+            .collection(kKeyCollectionUsers)
+            .doc(uidFollowing)
+            .update({
           kKeyUserFollowers: FieldValue.arrayUnion([uid]),
         });
       } else {
         await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
           kKeyUserFollowing: FieldValue.arrayRemove([uidFollowing]),
         });
-        await _firestore.collection(kKeyCollectionUsers).doc(uidFollowing).update({
+        await _firestore
+            .collection(kKeyCollectionUsers)
+            .doc(uidFollowing)
+            .update({
           kKeyUserFollowers: FieldValue.arrayRemove([uid]),
         });
       }
@@ -215,7 +244,7 @@ class FirestoreMethods {
     List<String> userIds =
         postsSnapshot.docs.map((doc) => doc[kKeyUsersId] as String).toList();
 
-    // Perform a query to fetch user data based on userIds
+    if (userIds.isEmpty) return [];
     QuerySnapshot usersSnapshot = await FirebaseFirestore.instance
         .collection(kKeyCollectionUsers)
         .where(FieldPath.documentId, whereIn: userIds)
@@ -236,12 +265,11 @@ class FirestoreMethods {
 
       int numberOfComments = (await commentsRef.get()).size;
 
-
       Map<String, dynamic> postData = postDoc.data() as Map<String, dynamic>;
       String? userId = postData[kKeyUsersId] as String?;
       Map<String, dynamic> userData = userDataMap[userId] ?? {};
       updatedCombinedData.add(
-          {'post': postData, 'user': userData, 'comment' : numberOfComments});
+          {'post': postData, 'user': userData, 'comment': numberOfComments});
     }
     return updatedCombinedData;
   }
@@ -479,19 +507,17 @@ class FirestoreMethods {
 
     QuerySnapshot postSnapshot = await _firestore
         .collection(kKeyCollectionPosts)
-        .orderBy(kKeyTimestamp, descending: false)
+        .orderBy(kKeyTimestamp, descending: true)
         .get();
 
     List<String> unique = []; // Change to List<String> for user IDs
     for (var postDoc in postSnapshot.docs) {
       String userId = postDoc.get(kKeyUsersId);
-      print(userId);
       if (users.contains(userId) && !unique.contains(userId)) {
         posts.add(postDoc.data() as Map<String, dynamic>);
         unique.add(userId);
       }
     }
-    print(posts);
 
     return posts;
   }
@@ -504,10 +530,8 @@ class FirestoreMethods {
         .orderBy(kKeyTimestamp, descending: true)
         .get();
 
-    var usersSnapshot = await _firestore
-        .collection(kKeyCollectionUsers)
-        .doc(uid)
-        .get();
+    var usersSnapshot =
+        await _firestore.collection(kKeyCollectionUsers).doc(uid).get();
     Map<String, dynamic> user = {};
     if (usersSnapshot.exists) {
       user = usersSnapshot.data()!;
@@ -515,23 +539,80 @@ class FirestoreMethods {
     for (var postDoc in postSnapshot.docs) {
       String userId = postDoc.get(kKeyUsersId);
       if (userId == uid) {
-        CollectionReference commentsRef = FirebaseFirestore.instance
-            .collection(kKeyCollectionPosts)
-            .doc(postDoc.id)
-            .collection(kKeySubCollectionComment);
-
-        int numberOfComments = (await commentsRef.get()).size;
-
-
-        Map<String, dynamic> postData = postDoc.data() as Map<String, dynamic>;
-
-        posts.add({
-          'post': postData,
-          'user': user,
-          'comment' : numberOfComments
-        });
+        posts.add(postDoc.data() as Map<String, dynamic>);
       }
     }
+
+    return posts;
+  }
+
+  Future<List<Map<String, dynamic>>> getUserLikePost(List<dynamic> postIds) async {
+
+    List<Map<String, dynamic>> posts = [];
+    if(postIds.isEmpty) return [];
+
+    QuerySnapshot postSnapshot = await _firestore
+        .collection(kKeyCollectionPosts)
+        .where(FieldPath.documentId, whereIn: postIds)
+        .get();
+
+    for (var postDoc in postSnapshot.docs) {
+
+      posts.add(postDoc.data() as Map<String, dynamic>);
+
+    }
+
+    return posts;
+  }
+
+  Future<List<Map<String, dynamic>>> getUserSavePost(List<dynamic> postIds) async {
+
+    List<Map<String, dynamic>> posts = [];
+
+    print(postIds);
+
+    if(postIds.isEmpty) return [];
+
+    QuerySnapshot postSnapshot = await _firestore
+        .collection(kKeyCollectionPosts)
+        .where(FieldPath.documentId, whereIn: postIds)
+        .get();
+
+    for (var postDoc in postSnapshot.docs) {
+      posts.add(postDoc.data() as Map<String, dynamic>);
+
+    }
+    return posts;
+  }
+
+  Future<List<Map<String, dynamic>>> getAPost(String postId) async {
+    List<Map<String, dynamic>> posts = [];
+
+    var postSnapshot =
+        await _firestore.collection(kKeyCollectionPosts).doc(postId).get();
+
+    Map<String, dynamic> postData = {};
+    if (postSnapshot.exists) {
+      postData = postSnapshot.data()!;
+    }
+
+    var usersSnapshot = await _firestore
+        .collection(kKeyCollectionUsers)
+        .doc(postData[kKeyUsersId])
+        .get();
+    Map<String, dynamic> user = {};
+    if (usersSnapshot.exists) {
+      user = usersSnapshot.data()!;
+    }
+
+    CollectionReference commentsRef = FirebaseFirestore.instance
+        .collection(kKeyCollectionPosts)
+        .doc(postId)
+        .collection(kKeySubCollectionComment);
+
+    int numberOfComments = (await commentsRef.get()).size;
+
+    posts.add({'post': postData, 'user': user, 'comment': numberOfComments});
 
     return posts;
   }

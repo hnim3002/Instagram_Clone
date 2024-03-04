@@ -96,7 +96,7 @@ class _CommentCardLayoutState extends State<CommentCardLayout> {
 
   @override
   Widget build(BuildContext context) {
-    return Provider.of<CommentsProvider>(context).numberOfReply == [] ? Container(child: Text("kljadsklds"),) : Column(
+    return Provider.of<CommentsProvider>(context).numberOfReply == [] ? Text("kljadsklds") : Column(
       children: [
         CommentCard(
           commentData: widget.commentData,

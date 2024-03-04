@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:instagram_clon/Widgets/search_user_card_widgets.dart';
 import 'package:instagram_clon/providers/user_provider.dart';
 import 'package:instagram_clon/resources/firestore_method.dart';
-import 'package:instagram_clon/screens/search_screen/post_search_screen.dart';
+import 'package:instagram_clon/screens/sub_post_screen.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 
+import '../../Widgets/custom_gridview_img_widgets.dart';
 import '../../utils/const.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -25,6 +26,11 @@ class _SearchScreenState extends State<SearchScreen> {
     users = await FirestoreMethods().getUsersId(
         Provider.of<UserProvider>(context, listen: false).user!.following!, Provider.of<UserProvider>(context, listen: false).user!.uid! );
     return FirestoreMethods().getPostUnique(users);
+  }
+
+  Future<void> refreshData() async {
+    await getUserPostData();
+    setState(() {});
   }
 
   @override
@@ -67,45 +73,18 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       ),
       body: SafeArea(
-        child:  FutureBuilder(
-            future: getUserPostData(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              }
-              if (snapshot.data!.isEmpty) {
-                return const Center(child: Text('No users found'));
-              }
-              return GridView.count(
-                crossAxisCount: 3,
-                mainAxisSpacing: 1.0,
-                crossAxisSpacing: 1.0,
-                children: snapshot.data!.map((map) {
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => PostSearchScreen(uid: map[kKeyUsersId])));
-                    },
-                    child: CachedNetworkImage(
-                      imageUrl: map[kKeyPostPhoto],
-                      imageBuilder: (context, imageProvider) => FadeInImage(
-                        fit: BoxFit.cover,
-                        placeholder: MemoryImage(kTransparentImage),
-                        image: imageProvider,
-                      ),
-                      placeholder: (context, url) => Container(color: Colors.white60),
-                      errorWidget: (context, url, error) => const Icon(Icons.error),
-                    ),
-                  );
-                }).toList(),
-              );
-            }),
+        child:  RefreshIndicator(
+          onRefresh: () {
+            return refreshData();
+          },
+          child: CustomGridViewImg(getUserPostData: getUserPostData(),),
+        ),
       ),
     );
   }
 }
+
+
 
 class CustomSearchDelegate extends SearchDelegate{
   @override
@@ -148,11 +127,17 @@ class CustomSearchDelegate extends SearchDelegate{
         if (snapshot.data!.docs.isEmpty) {
           return const Center(child: Text('No users found'));
         }
+        List<Map<String, dynamic>> updatedCombinedData = [];
+        for (var userDoc in snapshot.data!.docs) {
+          String userId = userDoc.get(kKeyUsersId);
+          if (userId != Provider.of<UserProvider>(context).user!.uid) {
+            updatedCombinedData.add(userDoc.data() as Map<String, dynamic>);
+          }
+        }
         return ListView.builder(
-          itemCount: snapshot.data!.docs.length,
+          itemCount: updatedCombinedData.length,
           itemBuilder: (context, index) {
-            Map<String, dynamic> user =
-                snapshot.data!.docs[index] as Map<String, dynamic>;
+            Map<String, dynamic> user = updatedCombinedData[index];
             return UserCard(userData: user);
           },
         );
@@ -178,12 +163,18 @@ class CustomSearchDelegate extends SearchDelegate{
         if (snapshot.data!.docs.isEmpty) {
           return const Center(child: Text('No users found'));
         }
+        List<Map<String, dynamic>> updatedCombinedData = [];
+        for (var userDoc in snapshot.data!.docs) {
+          String userId = userDoc.get(kKeyUsersId);
+          if (userId != Provider.of<UserProvider>(context).user!.uid) {
+            updatedCombinedData.add(userDoc.data() as Map<String, dynamic>);
+          }
+        }
         return ListView.builder(
-          itemCount: snapshot.data!.docs.length,
+          itemCount: updatedCombinedData.length,
           itemBuilder: (context, index) {
-            var userData =
-                snapshot.data!.docs[index].data() as Map<String, dynamic>;
-            return UserCard(userData: userData);
+            Map<String, dynamic> user = updatedCombinedData[index];
+            return UserCard(userData: user);
           },
         );
       },
