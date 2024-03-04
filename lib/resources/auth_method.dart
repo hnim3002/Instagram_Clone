@@ -39,7 +39,13 @@ class AuthMethods {
           uid: credential.user!.uid,
           photoUrl: kKeyDefaultAvatar,
           followers: [],
-          following: []);
+          following: [],
+          post: [],
+          like: [],
+          bio: '',
+          save: [],
+          block: [],
+      );
 
       _db.collection("users").doc(credential.user!.uid).set(user.toJson());
       error = 'Success';
