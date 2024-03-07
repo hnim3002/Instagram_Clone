@@ -20,11 +20,11 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-
   Future<List<Map<String, dynamic>>> getUserPostData() async {
     List<String> users = [];
     users = await FirestoreMethods().getUsersId(
-        Provider.of<UserProvider>(context, listen: false).user!.following!, Provider.of<UserProvider>(context, listen: false).user!.uid! );
+        Provider.of<UserProvider>(context, listen: false).user!.following!,
+        Provider.of<UserProvider>(context, listen: false).user!.uid!);
     return FirestoreMethods().getPostUnique(users);
   }
 
@@ -73,20 +73,20 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       ),
       body: SafeArea(
-        child:  RefreshIndicator(
+        child: RefreshIndicator(
           onRefresh: () {
             return refreshData();
           },
-          child: CustomGridViewImg(getUserPostData: getUserPostData(),),
+          child: CustomGridViewImg(
+            getUserPostData: getUserPostData(),
+          ),
         ),
       ),
     );
   }
 }
 
-
-
-class CustomSearchDelegate extends SearchDelegate{
+class CustomSearchDelegate extends SearchDelegate {
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [
@@ -96,7 +96,6 @@ class CustomSearchDelegate extends SearchDelegate{
           },
           icon: const Icon(Icons.close_rounded))
     ];
-
   }
 
   @override
@@ -106,7 +105,6 @@ class CustomSearchDelegate extends SearchDelegate{
           close(context, null);
         },
         icon: const Icon(Icons.arrow_back));
-
   }
 
   @override
