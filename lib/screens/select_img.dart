@@ -2,13 +2,15 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:instagram_clon/screens/post_screen/crop_img_screen.dart';
+import 'package:instagram_clon/screens/user_screen/crop_user_img_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_gallery/photo_gallery.dart';
 import 'dart:io' show File, Platform;
 import 'package:transparent_image/transparent_image.dart';
 
 class PostScreen extends StatefulWidget {
-  const PostScreen({super.key});
+  final bool isUserScreen;
+  const PostScreen({super.key, this.isUserScreen = false});
 
   @override
   State<PostScreen> createState() => _PostScreenState();
@@ -93,8 +95,14 @@ class _PostScreenState extends State<PostScreen> {
   }
 
   void toCropScreen(Uint8List file) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => CropImgScreen(file: file)));
+    if(widget.isUserScreen) {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => CropUserImgScreen(file: file)));
+    } else {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => CropImgScreen(file: file)));
+    }
+
   }
 
   void onItemSelect(Medium medium) {
@@ -121,7 +129,7 @@ class _PostScreenState extends State<PostScreen> {
         ],
         leading: IconButton(
           onPressed: () {
-
+            Navigator.pop(context);
           },
           icon: const Icon(Icons.close),
         ),
