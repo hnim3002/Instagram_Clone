@@ -12,8 +12,9 @@ import 'package:instagram_clon/responsive/responsive_layout.dart';
 import 'package:instagram_clon/responsive/web_screen.dart';
 import 'package:instagram_clon/screens/Home_screen.dart';
 import 'package:instagram_clon/screens/login_screen.dart';
-import 'package:instagram_clon/screens/post_screen/select_img.dart';
+import 'package:instagram_clon/screens/select_img.dart';
 import 'package:instagram_clon/screens/search_screen/search_screen.dart';
+import 'package:instagram_clon/screens/user_screen/edit_user_screen.dart';
 import 'package:page_route_animator/page_route_animator.dart';
 import 'package:provider/provider.dart';
 
@@ -87,10 +88,20 @@ class MyApp extends StatelessWidget {
                   duration: const Duration(milliseconds: 300),
                   reverseDuration: const Duration(milliseconds: 300),
                 );
+              case '/edit-user-screen':
+                return PageRouteAnimator(
+                  child: const EditProfile(),
+                  routeAnimation: RouteAnimation.bottomToTop,
+                  settings: settings,
+                  curve: Curves.linear,
+                  duration: const Duration(milliseconds: 200),
+                  reverseDuration: const Duration(milliseconds: 300),
+                );
               default:
                 return null;
             }
           },
+
           home: StreamBuilder(
               stream: FirebaseAuth.instance.authStateChanges(),
               builder: (context, snapshot) {

@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:instagram_clon/screens/Home_screen.dart';
-import 'package:instagram_clon/screens/post_screen/select_img.dart';
+import 'package:instagram_clon/screens/select_img.dart';
 import 'package:instagram_clon/screens/search_screen/search_screen.dart';
 import 'package:instagram_clon/screens/user_screen/userprofile_screen.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
