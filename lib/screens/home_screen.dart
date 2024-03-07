@@ -79,6 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: CustomScrollView(
             slivers: [
               SliverAppBar(
+                elevation: 0 ,
                 backgroundColor: isDarkMode ? Colors.black : primaryColor,
                 title: SvgPicture.asset(
                   height: 30,
