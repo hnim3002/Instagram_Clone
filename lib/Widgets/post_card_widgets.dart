@@ -42,10 +42,12 @@ class _PostCardState extends State<PostCard> {
   late ImageStreamListener _postImageStreamListener;
   late CachedNetworkImageProvider _userImageProvider;
   late CachedNetworkImageProvider _postImageProvider;
+  late var commentProvider ;
 
   @override
   void initState() {
     super.initState();
+    commentProvider = Provider.of<CommentsProvider>(context, listen: false);
     if (widget.isSub) {
       postPhotoUrl = Provider.of<PostsProvider>(context, listen: false)
           .subPostData[widget.index]["post"][kKeyPostPhoto];
@@ -210,12 +212,15 @@ class _PostCardState extends State<PostCard> {
     );
   }
 
+
+
   Future<void> getPostData() async {
     await Provider.of<PostsProvider>(context, listen: false).refreshPostData();
   }
 
   @override
   Widget build(BuildContext context) {
+
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
     bool isLike;
@@ -486,19 +491,36 @@ class _PostCardState extends State<PostCard> {
         backgroundColor: Colors.white,
         useSafeArea: true,
         context: context,
-        builder: (BuildContext context) {
-          return PostCommentLayout(
-            userPhoto: widget.user.photoUrl.toString(),
-            postId: widget.isSub
-                ? Provider.of<PostsProvider>(context, listen: false)
-                    .subPostData[widget.index]["post"][kKeyPostId]
-                : Provider.of<PostsProvider>(context, listen: false)
-                    .postData![widget.index]["post"][kKeyPostId],
-            uid: widget.user.uid.toString(),
-            userName: widget.user.username.toString(), isSub: widget.isSub,
-          );
-        }).then((_) {
 
+        builder: (BuildContext context) {
+          return PopScope(
+            canPop: false,
+            onPopInvoked: (bool didPop) {
+              if (didPop) {
+                return;
+              }
+              Provider.of<CommentsProvider>(context, listen: false).numberOfReply = [];
+              Provider.of<CommentsProvider>(context, listen: false).deleteCommentData();
+              Provider.of<CommentsProvider>(context, listen: false).deleteReplyData();
+              Navigator.pop(context);
+            },
+            child: PostCommentLayout(
+              userPhoto: widget.user.photoUrl.toString(),
+              postId: widget.isSub
+                  ? Provider.of<PostsProvider>(context, listen: false)
+                      .subPostData[widget.index]["post"][kKeyPostId]
+                  : Provider.of<PostsProvider>(context, listen: false)
+                      .postData![widget.index]["post"][kKeyPostId],
+              uid: widget.user.uid.toString(),
+              userName: widget.user.username.toString(), isSub: widget.isSub,
+            ),
+          );
+        },
+     ).whenComplete(() {
+       List<int> temp = [];
+       commentProvider.numberOfReply = temp;
+       commentProvider.deleteCommentData();
+       commentProvider.deleteReplyData();
     });
   }
 }
