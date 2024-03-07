@@ -43,6 +43,20 @@ class FirestoreMethods {
     return res;
   }
 
+  Future<void> updateUserImg(String uid, Uint8List file) async {
+    try {
+      String postPhotoUrl = await StorageMethods().uploadImageToStorage("avatar", file, false);
+
+      await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
+        kKeyUserPhoto: postPhotoUrl,
+      });
+
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+
   Future<void> updateUserPost(String postId, String uid, bool addPost) async {
     try {
       if (addPost) {
@@ -135,6 +149,46 @@ class FirestoreMethods {
     } catch (e) {
       print(e.toString());
     }
+  }
+
+  Future<void> updateUserInfo(String uid, String data, String value) async {
+    try {
+      switch(data) {
+        case 'Name':
+          await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
+            kKeyFullName: value,
+          });
+          break;
+        case 'Username':
+          await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
+            kKeyUserName: value,
+          });
+          break;
+        case 'Bio':
+          await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
+            kKeyUserBio: value,
+          });
+          break;
+        case 'Email':
+          break;
+      }
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  Future<bool> checkUsernameExist(String username) async {
+    try {
+      QuerySnapshot usersSnapshot = await _firestore
+          .collection(kKeyCollectionUsers)
+          .where(kKeyUserName, isEqualTo: username)
+          .get();
+
+      return usersSnapshot.docs.isNotEmpty;
+    } catch (e) {
+      print(e.toString());
+    }
+    return false;
   }
 
   Future<String> uploadPostComment({
@@ -616,4 +670,6 @@ class FirestoreMethods {
 
     return posts;
   }
+
+
 }
