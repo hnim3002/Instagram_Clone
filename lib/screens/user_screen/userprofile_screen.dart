@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:instagram_clon/screens/login_screen.dart';
+import 'package:instagram_clon/screens/user_screen/edit_user_screen.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 
@@ -144,7 +145,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.of(context, rootNavigator: true).pushNamed("/edit-user-screen");
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 40),
@@ -220,6 +223,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
   }
 }
+
+
 
 
 
