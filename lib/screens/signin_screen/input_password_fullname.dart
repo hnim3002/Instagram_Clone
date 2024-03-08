@@ -48,7 +48,7 @@ class _InputPasswordScreenState extends State<InputPasswordScreen> {
         if (user == null) {
           print('User is currently signed out!');
         } else {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+          print('User is signed in!${user.email!}');
         }
       });
     } else {

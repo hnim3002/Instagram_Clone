@@ -17,7 +17,8 @@ import '../providers/posts_state_provider.dart';
 import '../utils/color_schemes.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Function toChatScreen;
+  const HomeScreen({super.key, required this.toChatScreen});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();

@@ -49,6 +49,48 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         Provider.of<UserProvider>(context, listen: false).user!.save!);
   }
 
+  void showBottomSheet() {
+    showModalBottomSheet<void>(
+        useSafeArea: true,
+        context: context,
+        builder: (BuildContext context) {
+          return Container(
+            color: Colors.white,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const SizedBox(
+                  height: 5,
+                ),
+                Container(
+                  width: 40,
+                  height: 5, // Height of the divider
+                  margin: const EdgeInsets.symmetric(
+                      vertical: 10), // Adjust vertical spacing
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10), // Rounded corners
+                    color: Colors.grey[700], // Divider color
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      ListTile(
+                        title: const Text('Log out'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          signOut();
+                        },
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isDarkMode =
@@ -84,7 +126,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         enableFeedback: false,
                         color: isDarkMode ? Colors.white : Colors.black,
                         iconSize: 30,
-                        onPressed: () {},
+                        onPressed: () {
+                          showBottomSheet();
+                        },
                         icon: const Icon(
                           Symbols.menu_rounded,
                         )),
