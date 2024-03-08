@@ -47,6 +47,7 @@ dependencies:
   material_symbols_icons: ^4.2718.0
   uuid: ^4.3.3
   page_route_animator: ^1.0.3
+  page_transition: ^2.1.0
   cached_network_image: ^3.3.1
   intl: ^0.19.0
   flutter_image_compress: ^2.1.0
