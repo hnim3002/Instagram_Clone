@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:instagram_clon/screens/login_screen.dart';
 import 'package:instagram_clon/screens/user_screen/edit_user_screen.dart';
+import 'package:instagram_clon/screens/user_follow_data_screen.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 
 import '../../Widgets/custom_gridview_img_widgets.dart';
@@ -14,8 +16,7 @@ import '../../providers/user_provider.dart';
 import '../../resources/firestore_method.dart';
 
 class UserProfileScreen extends StatefulWidget {
-  final bool isSub;
-  const UserProfileScreen({super.key, this.isSub = false});
+  const UserProfileScreen({super.key});
 
   @override
   State<UserProfileScreen> createState() => _UserProfileScreenState();
@@ -33,17 +34,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
-
   Future<List<Map<String, dynamic>>> getUserPostData() async {
-    return FirestoreMethods().getUserPost(Provider.of<UserProvider>(context, listen: false).user!.uid!);
+    return FirestoreMethods().getUserPost(
+        Provider.of<UserProvider>(context, listen: false).user!.uid!);
   }
 
   Future<List<Map<String, dynamic>>> getUserLikePost() async {
-    return FirestoreMethods().getUserLikePost(Provider.of<UserProvider>(context, listen: false).user!.like!);
+    return FirestoreMethods().getUserLikePost(
+        Provider.of<UserProvider>(context, listen: false).user!.like!);
   }
 
   Future<List<Map<String, dynamic>>> getUserSavePost() async {
-    return FirestoreMethods().getUserSavePost(Provider.of<UserProvider>(context, listen: false).user!.save!);
+    return FirestoreMethods().getUserSavePost(
+        Provider.of<UserProvider>(context, listen: false).user!.save!);
   }
 
   @override
@@ -59,176 +62,200 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final int numberOfFollowing = user.following!.length;
     return Scaffold(
       body: SafeArea(
-        child: DefaultTabController(
-          length: 3,
-          child: NestedScrollView(
-            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-              return [
-                SliverAppBar(
-                    backgroundColor: Colors.white,
-                    expandedHeight: 240,
-                    title: Text(
-                      userName,
-                      style: const TextStyle(
-                          letterSpacing: 0.5,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold),
-                    ),
-
-                    actions: [
-                      IconButton(
-                          visualDensity: VisualDensity.compact,
-                          highlightColor: Colors.transparent,
-                          enableFeedback: false,
-                          color: isDarkMode ? Colors.white : Colors.black,
-                          iconSize: 30,
-                          onPressed: () {
-
-                          },
-                          icon: const Icon(
-                            Symbols.menu_rounded,
-                          )),
-                      const SizedBox(
-                        width: 10,
-                      )
-                    ],
-                    flexibleSpace: FlexibleSpaceBar(
-                      titlePadding: EdgeInsets.zero,
-
-
-                      background: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              const SizedBox(width: 20,),
-                              CircleAvatar(
-                                radius: 40,
-                                backgroundImage:
-                                    CachedNetworkImageProvider(user.photoUrl!),
-                              ),
-                              const SizedBox(width: 10,),
-                              Expanded(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    UserDataColumn(
-                                      number: numberOfPosts,
-                                      text: 'posts',
-                                    ),
-                                    UserDataColumn(
+          child: DefaultTabController(
+        length: 3,
+        child: NestedScrollView(
+          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+            return [
+              SliverAppBar(
+                  backgroundColor: Colors.white,
+                  expandedHeight: 240,
+                  title: Text(
+                    userName,
+                    style: const TextStyle(
+                        letterSpacing: 0.5,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  actions: [
+                    IconButton(
+                        visualDensity: VisualDensity.compact,
+                        highlightColor: Colors.transparent,
+                        enableFeedback: false,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                        iconSize: 30,
+                        onPressed: () {},
+                        icon: const Icon(
+                          Symbols.menu_rounded,
+                        )),
+                    const SizedBox(
+                      width: 10,
+                    )
+                  ],
+                  flexibleSpace: FlexibleSpaceBar(
+                    titlePadding: EdgeInsets.zero,
+                    background: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            CircleAvatar(
+                              radius: 40,
+                              backgroundImage:
+                                  CachedNetworkImageProvider(user.photoUrl!),
+                            ),
+                            const SizedBox(
+                              width: 10,
+                            ),
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  UserDataColumn(
+                                    number: numberOfPosts,
+                                    text: 'posts',
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          PageTransition(
+                                              type: PageTransitionType
+                                                  .rightToLeft,
+                                              child: const UserFollowData(
+                                                  intIndex: 0)));
+                                    },
+                                    child: UserDataColumn(
                                       number: numberOfFollow,
                                       text: 'followers',
                                     ),
-                                    UserDataColumn(
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          PageTransition(
+                                              type: PageTransitionType
+                                                  .rightToLeft,
+                                              child: const UserFollowData(
+                                                  intIndex: 1)));
+                                    },
+                                    child: UserDataColumn(
                                       number: numberOfFollowing,
                                       text: 'following',
                                     ),
-                                  ],
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 3,
+                        ),
+                        Text(
+                          "    $userFullName",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          "    $userBio",
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            ElevatedButton(
+                                onPressed: () {
+                                  //Navigator.of(context, rootNavigator: true).pushNamed("/edit-user-screen");
+                                  Navigator.of(context, rootNavigator: true)
+                                      .push(PageTransition(
+                                          type: PageTransitionType.bottomToTop,
+                                          child: const EditProfile()));
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 40),
+                                  minimumSize: const Size(60, 35),
+                                  backgroundColor: const Color(0xFFEEEEEE),
+                                  elevation: 0.1,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        8.0), // Adjust the border radius here
+                                  ),
                                 ),
-                              )
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 3,
-                          ),
-                          Text(
-                            "    $userFullName",
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            "    $userBio",
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.of(context, rootNavigator: true).pushNamed("/edit-user-screen");
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 40),
-                                    minimumSize: const Size(60, 35),
-                                    backgroundColor: const Color(0xFFEEEEEE),
-                                    elevation: 0.1,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          8.0), // Adjust the border radius here
-                                    ),
+                                child: const Text(
+                                  "Edit profile",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold),
+                                )),
+                            ElevatedButton(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 40),
+                                  minimumSize: const Size(60, 35),
+                                  backgroundColor: const Color(0xFFEEEEEE),
+                                  elevation: 0.1,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        8.0), // Adjust the border radius here
                                   ),
-                                  child: const Text(
-                                    "Edit profile",
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.bold),
-                                  )),
-                              ElevatedButton(
-                                  onPressed: () {},
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 40),
-                                    minimumSize: const Size(60, 35),
-                                    backgroundColor: const Color(0xFFEEEEEE),
-                                    elevation: 0.1,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          8.0), // Adjust the border radius here
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    "Share profile",
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.bold),
-                                  ))
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 5,
-                          )
-                        ],
-                      ),
-                    )),
-                SliverPersistentHeader(
-                  delegate: MyDelegate(
-                      TabBar(
-                        indicator: null,
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        indicatorColor: isDarkMode ? Colors.white : Colors.black,
-                        tabs: const [
-                          Tab(icon: Icon(Icons.grid_on)),
-                          Tab(icon: Icon(Icons.favorite_border_outlined)),
-                          Tab(icon: Icon(Icons.bookmark_border)),
-                        ],
-                        unselectedLabelColor: Colors.grey,
-                        labelColor: Colors.black,
-                      )
-                  ),
-                  pinned: true,
-                )
-              ];
-            },
-            body: TabBarView(
-              children: [
-                CustomGridViewImg(getUserPostData: getUserPostData(),),
-                CustomGridViewImg(getUserPostData: getUserLikePost(),),
-                CustomGridViewImg(getUserPostData: getUserSavePost(),),
-              ],
-            ),
+                                ),
+                                child: const Text(
+                                  "Share profile",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold),
+                                ))
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 5,
+                        )
+                      ],
+                    ),
+                  )),
+              SliverPersistentHeader(
+                delegate: MyDelegate(TabBar(
+                  indicator: null,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicatorColor: isDarkMode ? Colors.white : Colors.black,
+                  tabs: const [
+                    Tab(icon: Icon(Icons.grid_on)),
+                    Tab(icon: Icon(Icons.favorite_border_outlined)),
+                    Tab(icon: Icon(Icons.bookmark_border)),
+                  ],
+                  unselectedLabelColor: Colors.grey,
+                  labelColor: Colors.black,
+                )),
+                pinned: true,
+              )
+            ];
+          },
+          body: TabBarView(
+            children: [
+              CustomGridViewImg(
+                getUserPostData: getUserPostData(),
+              ),
+              CustomGridViewImg(
+                getUserPostData: getUserLikePost(),
+              ),
+              CustomGridViewImg(
+                getUserPostData: getUserSavePost(),
+              ),
+            ],
           ),
-        )),
-      );
+        ),
+      )),
+    );
   }
 }
-
-
-
-
-
-
 
 class MyDelegate extends SliverPersistentHeaderDelegate {
   MyDelegate(this.tabBar);
