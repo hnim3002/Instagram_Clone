@@ -151,6 +151,35 @@ class FirestoreMethods {
     }
   }
 
+  Future<void> updateUserFollowers(
+      String uid, bool isFollowing, String uidFollowers) async {
+    try {
+      if (isFollowing) {
+        await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
+          kKeyUserFollowers: FieldValue.arrayUnion([uidFollowers]),
+        });
+        await _firestore
+            .collection(kKeyCollectionUsers)
+            .doc(uidFollowers)
+            .update({
+          kKeyUserFollowing: FieldValue.arrayUnion([uid]),
+        });
+      } else {
+        await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
+          kKeyUserFollowers: FieldValue.arrayRemove([uidFollowers]),
+        });
+        await _firestore
+            .collection(kKeyCollectionUsers)
+            .doc(uidFollowers)
+            .update({
+          kKeyUserFollowing: FieldValue.arrayRemove([uid]),
+        });
+      }
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
   Future<void> updateUserInfo(String uid, String data, String value) async {
     try {
       switch(data) {
@@ -539,7 +568,7 @@ class FirestoreMethods {
     return error;
   }
 
-  Future<List<String>> getUsersId(List<dynamic> following, String uid) async {
+  Future<List<String>> getUsersIdHaveNotFollow(List<dynamic> following, String uid) async {
     List<String> users = [];
 
     QuerySnapshot userSnapshot =
@@ -669,6 +698,36 @@ class FirestoreMethods {
     posts.add({'post': postData, 'user': user, 'comment': numberOfComments});
 
     return posts;
+  }
+
+  Future<List<Map<String, dynamic>>> getUserFollow(List<dynamic> followId) async {
+    List<Map<String, dynamic>> userList = [];
+    if(followId.isEmpty) return [];
+
+    var usersSnapshot = await _firestore
+        .collection(kKeyCollectionUsers)
+        .where(FieldPath.documentId, whereIn: followId)
+        .get();
+    for(var user in usersSnapshot.docs) {
+      userList.add(user.data());
+    }
+
+    return userList;
+  }
+
+  Future<Map<String, dynamic>> getAUser(String uid) async {
+    Map<String, dynamic> userList = {};
+
+    var usersSnapshot = await _firestore
+        .collection(kKeyCollectionUsers)
+        .doc(uid)
+        .get();
+
+    if(usersSnapshot.exists) {
+      userList = usersSnapshot.data()!;
+    }
+
+    return userList;
   }
 
 

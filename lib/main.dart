@@ -12,6 +12,7 @@ import 'package:instagram_clon/responsive/responsive_layout.dart';
 import 'package:instagram_clon/responsive/web_screen.dart';
 import 'package:instagram_clon/screens/Home_screen.dart';
 import 'package:instagram_clon/screens/login_screen.dart';
+import 'package:instagram_clon/screens/search_screen/user_profile_info_screen.dart';
 import 'package:instagram_clon/screens/select_img.dart';
 import 'package:instagram_clon/screens/search_screen/search_screen.dart';
 import 'package:instagram_clon/screens/user_screen/edit_user_screen.dart';
@@ -67,39 +68,6 @@ class MyApp extends StatelessWidget {
               .copyWith(scaffoldBackgroundColor: Colors.black),
           routes: {
             '/home_screen': (context) => const MobileScreenLayout(),
-          },
-          onGenerateRoute: (settings) {
-            switch (settings.name) {
-              case '/post-screen':
-                return PageRouteAnimator(
-                  child: const PostScreen(),
-                  routeAnimation: RouteAnimation.leftToRight,
-                  settings: settings,
-                  curve: Curves.linear,
-                  duration: const Duration(milliseconds: 300),
-                  reverseDuration: const Duration(milliseconds: 300),
-                );
-              case '/chat-screen':
-                return PageRouteAnimator(
-                  child: const PostScreen(),
-                  routeAnimation: RouteAnimation.rightToLeft,
-                  settings: settings,
-                  curve: Curves.linear,
-                  duration: const Duration(milliseconds: 300),
-                  reverseDuration: const Duration(milliseconds: 300),
-                );
-              case '/edit-user-screen':
-                return PageRouteAnimator(
-                  child: const EditProfile(),
-                  routeAnimation: RouteAnimation.bottomToTop,
-                  settings: settings,
-                  curve: Curves.linear,
-                  duration: const Duration(milliseconds: 200),
-                  reverseDuration: const Duration(milliseconds: 300),
-                );
-              default:
-                return null;
-            }
           },
 
           home: StreamBuilder(

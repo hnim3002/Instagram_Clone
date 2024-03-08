@@ -9,8 +9,9 @@ import 'dart:io' show File, Platform;
 import 'package:transparent_image/transparent_image.dart';
 
 class PostScreen extends StatefulWidget {
+  final Function closeBtnOnPressed;
   final bool isUserScreen;
-  const PostScreen({super.key, this.isUserScreen = false});
+  const PostScreen({super.key, this.isUserScreen = false, required this.closeBtnOnPressed});
 
   @override
   State<PostScreen> createState() => _PostScreenState();
@@ -129,109 +130,122 @@ class _PostScreenState extends State<PostScreen> {
         ],
         leading: IconButton(
           onPressed: () {
-            Navigator.pop(context);
+            if(widget.isUserScreen) {
+              Navigator.pop(context);
+            } else {
+              widget.closeBtnOnPressed();
+            }
           },
           icon: const Icon(Icons.close),
         ),
       ),
-      body: SafeArea(
-          child: Column(
-                  children: [
-          SizedBox(
-              height: 370,
-              width: double.infinity,
-              child: _medium == null
-                  ? const CircularProgressIndicator()
-                  : ClipRect(
-                      child: FittedBox(
-                        fit: BoxFit.cover,
-                        child: _medium?.mediumType == MediumType.image
-                            ? FadeInImage(
-                                placeholder: MemoryImage(kTransparentImage),
-                                image: PhotoProvider(
-                                  mediumId: _medium!.id,
-                                ),
-                              )
-                            : Container(),
-                      ),
-                    )),
-          SizedBox(
-            height: 60,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: TextButton(
-                    onPressed: () {
-                      showBottomSheet();
-                    },
-                    child: Row(
-                      children: [
-                        Text(
-                          albumsName,
-                          style: TextStyle(
-                              color: isDarkMode ? Colors.white : Colors.black,
-                              fontSize: 18),
+      body: PopScope(
+        canPop: false,
+        onPopInvoked: (bool didPop) {
+          if (didPop) {
+            return;
+          }
+          widget.closeBtnOnPressed();
+        },
+        child: SafeArea(
+            child: Column(
+                    children: [
+            SizedBox(
+                height: 370,
+                width: double.infinity,
+                child: _medium == null
+                    ? const CircularProgressIndicator()
+                    : ClipRect(
+                        child: FittedBox(
+                          fit: BoxFit.cover,
+                          child: _medium?.mediumType == MediumType.image
+                              ? FadeInImage(
+                                  placeholder: MemoryImage(kTransparentImage),
+                                  image: PhotoProvider(
+                                    mediumId: _medium!.id,
+                                  ),
+                                )
+                              : Container(),
                         ),
-                        Icon(
-                          Icons.expand_more,
-                          color: isDarkMode ? Colors.white : Colors.black,
-                        )
-                      ],
+                      )),
+            SizedBox(
+              height: 60,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: TextButton(
+                      onPressed: () {
+                        showBottomSheet();
+                      },
+                      child: Row(
+                        children: [
+                          Text(
+                            albumsName,
+                            style: TextStyle(
+                                color: isDarkMode ? Colors.white : Colors.black,
+                                fontSize: 18),
+                          ),
+                          Icon(
+                            Icons.expand_more,
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          )
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                    onPressed: () async {
-                      toCropScreen(
-                          await convertToUint8List(await getImgCamera()));
-                    },
-                    icon: const Icon(Icons.camera_alt))
-              ],
+                  IconButton(
+                      onPressed: () async {
+                        toCropScreen(
+                            await convertToUint8List(await getImgCamera()));
+                      },
+                      icon: const Icon(Icons.camera_alt))
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: _medium == null
-                ? const CircularProgressIndicator()
-                : GridView.count(
-                    crossAxisCount: 4,
-                    mainAxisSpacing: 1.0,
-                    crossAxisSpacing: 1.0,
-                    children: <Widget>[
-                      ...?_media?.map(
-                        (medium) => GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              onItemSelect(medium);
-                            });
-                          },
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              FadeInImage(
-                                fit: BoxFit.cover,
-                                placeholder: MemoryImage(kTransparentImage),
-                                image: ThumbnailProvider(
-                                  mediumId: medium.id,
-                                  mediumType: medium.mediumType,
-                                  highQuality: true,
+            Expanded(
+              child: _medium == null
+                  ? const CircularProgressIndicator()
+                  : GridView.count(
+                      crossAxisCount: 4,
+                      mainAxisSpacing: 1.0,
+                      crossAxisSpacing: 1.0,
+                      children: <Widget>[
+                        ...?_media?.map(
+                          (medium) => GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                onItemSelect(medium);
+                              });
+                            },
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                FadeInImage(
+                                  fit: BoxFit.cover,
+                                  placeholder: MemoryImage(kTransparentImage),
+                                  image: ThumbnailProvider(
+                                    mediumId: medium.id,
+                                    mediumType: medium.mediumType,
+                                    highQuality: true,
+                                  ),
                                 ),
-                              ),
-                              Container(
-                                color: _medium == medium
-                                    ? Colors.white60
-                                    : Colors.transparent,
-                              ),
-                            ],
+                                Container(
+                                  color: _medium == medium
+                                      ? Colors.white60
+                                      : Colors.transparent,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
+                      ],
+                    ),
+            )
                     ],
-                  ),
-          )
-                  ],
-                )),
+                  )),
+      ),
     );
   }
 

@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:instagram_clon/Widgets/search_user_card_widgets.dart';
 import 'package:instagram_clon/providers/user_provider.dart';
 import 'package:instagram_clon/resources/firestore_method.dart';
+import 'package:instagram_clon/screens/search_screen/user_profile_info_screen.dart';
 import 'package:instagram_clon/screens/sub_post_screen.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 
@@ -22,7 +24,7 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   Future<List<Map<String, dynamic>>> getUserPostData() async {
     List<String> users = [];
-    users = await FirestoreMethods().getUsersId(
+    users = await FirestoreMethods().getUsersIdHaveNotFollow(
         Provider.of<UserProvider>(context, listen: false).user!.following!,
         Provider.of<UserProvider>(context, listen: false).user!.uid!);
     return FirestoreMethods().getPostUnique(users);
@@ -172,7 +174,14 @@ class CustomSearchDelegate extends SearchDelegate {
           itemCount: updatedCombinedData.length,
           itemBuilder: (context, index) {
             Map<String, dynamic> user = updatedCombinedData[index];
-            return UserCard(userData: user);
+            return GestureDetector(
+              onTap: () {
+                //Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfileInfoScreen(uid: user[kKeyUsersId],)));
+                //Navigator.pushNamed(context, "/other-user-info", arguments: user[kKeyUsersId]);
+                Navigator.push(context, PageTransition(type: PageTransitionType.rightToLeft, child: UserProfileInfoScreen(uid: user[kKeyUsersId],)));
+              },
+              child: UserCard(userData: user)
+            );
           },
         );
       },

@@ -6,15 +6,29 @@ import '../screens/sub_post_screen.dart';
 import '../utils/const.dart';
 
 
-class CustomGridViewImg extends StatelessWidget {
+class CustomGridViewImg extends StatefulWidget {
   final Future<dynamic> getUserPostData;
 
   const CustomGridViewImg({super.key, required this.getUserPostData});
 
   @override
+  State<CustomGridViewImg> createState() => _CustomGridViewImgState();
+}
+
+class _CustomGridViewImgState extends State<CustomGridViewImg> {
+
+  late Future<dynamic> yourFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    yourFuture = widget.getUserPostData; // Replace this with your actual future
+  }
+  @override
   Widget build(BuildContext context) {
+
     return FutureBuilder(
-        future: getUserPostData,
+        future: yourFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clon/providers/posts_state_provider.dart';
@@ -21,6 +23,7 @@ class PostSearchScreen extends StatefulWidget {
 class _PostSearchScreenState extends State<PostSearchScreen> {
   bool isFollowing = false;
   bool isVisible = true;
+  late Future<int> index;
 
   void checkUserFollowing() {
     isVisible = !Provider.of<UserProvider>(context, listen: false).user!.following!.contains(widget.uid);
@@ -42,7 +45,7 @@ class _PostSearchScreenState extends State<PostSearchScreen> {
 
   @override
   void initState() {
-    getPostData();
+    index = getPostData();
     checkUserFollowing();
     super.initState();
   }
@@ -67,6 +70,7 @@ class _PostSearchScreenState extends State<PostSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text(
           "Posts",
@@ -99,7 +103,7 @@ class _PostSearchScreenState extends State<PostSearchScreen> {
       ),
       body: SafeArea(
           child: FutureBuilder(
-              future: getPostData(),
+              future: index,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -108,10 +112,14 @@ class _PostSearchScreenState extends State<PostSearchScreen> {
                   return Text('Error: ${snapshot.error}');
                 }
 
-                return PostCard(
-                  user: Provider.of<UserProvider>(context, listen: false).user!,
-                  index: 0,
-                  isSub: true,
+                return ListView(
+                  children: [
+                    PostCard(
+                      user: Provider.of<UserProvider>(context, listen: false).user!,
+                      index: 0,
+                      isSub: true,
+                    ),
+                  ],
                 );
               }),
       ),

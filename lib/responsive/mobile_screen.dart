@@ -7,6 +7,7 @@ import 'package:instagram_clon/screens/search_screen/search_screen.dart';
 import 'package:instagram_clon/screens/user_screen/userprofile_screen.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/user_provider.dart';
@@ -21,6 +22,9 @@ class MobileScreenLayout extends StatefulWidget {
 
 class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   final PageController _pageViewController = PageController(initialPage: 1);
+  final CupertinoTabController _cupertinoTabController =
+      CupertinoTabController();
+  ScrollPhysics pageViewPhysics = const NeverScrollableScrollPhysics();
   int pageViewIndex = 1;
 
   void closeBtnOnPressed() {
@@ -28,36 +32,75 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
         duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
   }
 
+  void goPostScreen() {
+    _pageViewController.animateToPage(0,
+        duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _cupertinoTabController.addListener(() {
+      if (_cupertinoTabController.index == 0) {
+        setState(() {
+          pageViewPhysics = const AlwaysScrollableScrollPhysics();
+        });
+      } else {
+        setState(() {
+          pageViewPhysics = const NeverScrollableScrollPhysics();
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
-    return const MainScreen();
+    return PageView(
+      physics: pageViewPhysics,
+      controller: _pageViewController,
+      children: [
+        PostScreen(
+          closeBtnOnPressed: () => closeBtnOnPressed(),
+        ),
+        MainScreen(
+          closeBtnOnPressed: () => goPostScreen(),
+          cupertinoTabController: _cupertinoTabController,
+        )
+      ],
+    );
   }
 }
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final Function closeBtnOnPressed;
+  final CupertinoTabController cupertinoTabController;
+  const MainScreen(
+      {super.key,
+      required this.closeBtnOnPressed,
+      required this.cupertinoTabController});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  final CupertinoTabController _cupertinoTabController =
-      CupertinoTabController();
+class _MainScreenState extends State<MainScreen>
+    with AutomaticKeepAliveClientMixin {
   int _selectedIndex = 0;
 
   void navigationTapped(int index) {
     if (index == 0) {
       _selectedIndex = 0;
-      _cupertinoTabController.index = 0;
+      widget.cupertinoTabController.index = 0;
     } else if (index == 1) {
       _selectedIndex = 1;
-      _cupertinoTabController.index = 1;
+      widget.cupertinoTabController.index = 1;
     } else if (index == 2) {
-      _cupertinoTabController.index = _selectedIndex;
-      Navigator.pushNamed(context, "/post-screen");
+      widget.closeBtnOnPressed();
+      widget.cupertinoTabController.index = _selectedIndex;
+      //Navigator.push(context, PageTransition(type: PageTransitionType.leftToRight, child: const PostScreen()));
+      //Navigator.pushNamed(context, "/post-screen");
     } else if (index == 3) {
       _selectedIndex = 2;
     } else if (index == 4) {
@@ -66,15 +109,16 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void onBackSearchPress() {
-    _cupertinoTabController.index = 0;
+    widget.cupertinoTabController.index = 0;
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
     return CupertinoTabScaffold(
-        controller: _cupertinoTabController,
+        controller: widget.cupertinoTabController,
         tabBar: CupertinoTabBar(
           items: <BottomNavigationBarItem>[
             const BottomNavigationBarItem(
@@ -154,21 +198,28 @@ class _MainScreenState extends State<MainScreen> {
                 builder: (context) => const HomeScreen(),
               );
             case 1:
-              return PopScope(
-                canPop: false,
-                onPopInvoked: (bool didPop) {
-                  if (didPop) {
-                    return;
-                  }
-                  onBackSearchPress();
-                },
-                child: CupertinoTabView(
-                  builder: (context) => SearchScreen(),
-                ),
+              return CupertinoTabView(
+                builder: (context) => PopScope(
+                    canPop: false,
+                    onPopInvoked: (bool didPop) {
+                      if (didPop) {
+                        return;
+                      }
+                      onBackSearchPress();
+                    },
+                    child: const SearchScreen()),
               );
             case 4:
               return CupertinoTabView(
-                builder: (context) => const UserProfileScreen(),
+                builder: (context) => PopScope(
+                    canPop: false,
+                    onPopInvoked: (bool didPop) {
+                      if (didPop) {
+                        return;
+                      }
+                      onBackSearchPress();
+                    },
+                    child: const UserProfileScreen()),
               );
             default:
               return CupertinoTabView(
@@ -177,4 +228,8 @@ class _MainScreenState extends State<MainScreen> {
           }
         });
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }

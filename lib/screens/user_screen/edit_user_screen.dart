@@ -59,7 +59,7 @@ class _EditProfileState extends State<EditProfile> {
               Center(
                 child: InkWell(
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) =>const PostScreen(isUserScreen: true,)));
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => PostScreen(isUserScreen: true, closeBtnOnPressed: () {Navigator.pop(context);},)));
                   },
                   child: const Text("Edit picture or avatar",
                       style: TextStyle(color: blueBtnColor)),
