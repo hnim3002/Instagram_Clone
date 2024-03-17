@@ -30,19 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user == null) {
-        print('User is currently signed out!');
-      } else {
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const ResponsiveLayout(
-                      mobileScreenLayout: MobileScreenLayout(),
-                      webScreenLayout: WebScreenLayout(),
-                    )));
-      }
-    });
+
   }
 
   @override

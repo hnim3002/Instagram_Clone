@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:instagram_clon/models/chat_message.dart';
+import 'package:instagram_clon/models/chat_room.dart';
 import 'package:instagram_clon/models/comment_post.dart';
 import 'package:instagram_clon/resources/storage_method.dart';
 import 'package:instagram_clon/utils/const.dart';
@@ -10,6 +12,16 @@ import '../models/post.dart';
 
 class FirestoreMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> updateActivity(String uid, bool isActive) async {
+    try {
+      await _firestore.collection(kKeyCollectionActive).doc(uid).update({
+        kKeyIsActive: isActive,
+      });
+    } catch (e) {
+      print(e.toString());
+    }
+  }
 
   Future<String> uploadPost({
     required String caption,
@@ -45,17 +57,16 @@ class FirestoreMethods {
 
   Future<void> updateUserImg(String uid, Uint8List file) async {
     try {
-      String postPhotoUrl = await StorageMethods().uploadImageToStorage("avatar", file, false);
+      String postPhotoUrl =
+          await StorageMethods().uploadImageToStorage("avatar", file, false);
 
       await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
         kKeyUserPhoto: postPhotoUrl,
       });
-
     } catch (e) {
       print(e.toString());
     }
   }
-
 
   Future<void> updateUserPost(String postId, String uid, bool addPost) async {
     try {
@@ -182,7 +193,7 @@ class FirestoreMethods {
 
   Future<void> updateUserInfo(String uid, String data, String value) async {
     try {
-      switch(data) {
+      switch (data) {
         case 'Name':
           await _firestore.collection(kKeyCollectionUsers).doc(uid).update({
             kKeyFullName: value,
@@ -284,6 +295,81 @@ class FirestoreMethods {
     }
     return error;
   }
+
+  Future<String> uploadChatRoom(
+      {required String uid, required String receiverId}) async {
+    String error = "Some thing when wrong";
+    try {
+      String chatId = const Uuid().v1();
+      ChatRoom chatRoom = ChatRoom(
+          chatId: chatId,
+          isSeen: false,
+          participantsId: [uid, receiverId],
+          lastMessage: '',
+          timestamp: Timestamp.fromDate(DateTime.now()));
+
+      await _firestore
+          .collection(kKeyCollectionChatRooms)
+          .doc(chatId)
+          .set(chatRoom.toFirestore());
+      error = 'Success';
+    } catch (e) {
+      error = e.toString();
+    }
+    return error;
+  }
+
+  Future<String> uploadChatMessageText(
+      {required String uid, required String messageContent}) async {
+    String error = "Some thing when wrong";
+    try {
+      String messageId = const Uuid().v1();
+
+      ChatMessage chatMessage = ChatMessage(
+          messageContent: messageContent,
+          timestamp: Timestamp.fromDate(DateTime.now()),
+          senderId: uid,
+          messageId: messageId ,
+          type: 'text');
+
+      await _firestore
+          .collection(kKeyCollectionChatRooms)
+          .doc(messageId )
+          .set(chatMessage.toFirestore());
+      error = 'Success';
+    } catch (e) {
+      error = e.toString();
+    }
+    return error;
+  }
+
+  Future<String> uploadChatMessageImg(
+      {required String uid, required Uint8List file}) async {
+    String error = "Some thing when wrong";
+    try {
+      String messageId = const Uuid().v1();
+      String postPhotoUrl =
+      await StorageMethods().uploadChatImageToStorage("chat", file, messageId);
+
+      ChatMessage chatMessage = ChatMessage(
+          messageContent: postPhotoUrl,
+          timestamp: Timestamp.fromDate(DateTime.now()),
+          senderId: uid,
+          messageId: messageId,
+          type: 'img');
+
+      await _firestore
+          .collection(kKeyCollectionChatRooms)
+          .doc(messageId)
+          .set(chatMessage.toFirestore());
+      error = 'Success';
+    } catch (e) {
+      error = e.toString();
+    }
+    return error;
+  }
+
+
 
   Future<List<int>> getNumberOfComment() async {
     QuerySnapshot postsSnapshot = await FirebaseFirestore.instance
@@ -568,7 +654,8 @@ class FirestoreMethods {
     return error;
   }
 
-  Future<List<String>> getUsersIdHaveNotFollow(List<dynamic> following, String uid) async {
+  Future<List<String>> getUsersIdHaveNotFollow(
+      List<dynamic> following, String uid) async {
     List<String> users = [];
 
     QuerySnapshot userSnapshot =
@@ -629,10 +716,10 @@ class FirestoreMethods {
     return posts;
   }
 
-  Future<List<Map<String, dynamic>>> getUserLikePost(List<dynamic> postIds) async {
-
+  Future<List<Map<String, dynamic>>> getUserLikePost(
+      List<dynamic> postIds) async {
     List<Map<String, dynamic>> posts = [];
-    if(postIds.isEmpty) return [];
+    if (postIds.isEmpty) return [];
 
     QuerySnapshot postSnapshot = await _firestore
         .collection(kKeyCollectionPosts)
@@ -640,21 +727,17 @@ class FirestoreMethods {
         .get();
 
     for (var postDoc in postSnapshot.docs) {
-
       posts.add(postDoc.data() as Map<String, dynamic>);
-
     }
 
     return posts;
   }
 
-  Future<List<Map<String, dynamic>>> getUserSavePost(List<dynamic> postIds) async {
-
+  Future<List<Map<String, dynamic>>> getUserSavePost(
+      List<dynamic> postIds) async {
     List<Map<String, dynamic>> posts = [];
 
-    print(postIds);
-
-    if(postIds.isEmpty) return [];
+    if (postIds.isEmpty) return [];
 
     QuerySnapshot postSnapshot = await _firestore
         .collection(kKeyCollectionPosts)
@@ -663,7 +746,6 @@ class FirestoreMethods {
 
     for (var postDoc in postSnapshot.docs) {
       posts.add(postDoc.data() as Map<String, dynamic>);
-
     }
     return posts;
   }
@@ -700,15 +782,16 @@ class FirestoreMethods {
     return posts;
   }
 
-  Future<List<Map<String, dynamic>>> getUserFollow(List<dynamic> followId) async {
+  Future<List<Map<String, dynamic>>> getUserFollow(
+      List<dynamic> followId) async {
     List<Map<String, dynamic>> userList = [];
-    if(followId.isEmpty) return [];
+    if (followId.isEmpty) return [];
 
     var usersSnapshot = await _firestore
         .collection(kKeyCollectionUsers)
         .where(FieldPath.documentId, whereIn: followId)
         .get();
-    for(var user in usersSnapshot.docs) {
+    for (var user in usersSnapshot.docs) {
       userList.add(user.data());
     }
 
@@ -718,17 +801,13 @@ class FirestoreMethods {
   Future<Map<String, dynamic>> getAUser(String uid) async {
     Map<String, dynamic> userList = {};
 
-    var usersSnapshot = await _firestore
-        .collection(kKeyCollectionUsers)
-        .doc(uid)
-        .get();
+    var usersSnapshot =
+        await _firestore.collection(kKeyCollectionUsers).doc(uid).get();
 
-    if(usersSnapshot.exists) {
+    if (usersSnapshot.exists) {
       userList = usersSnapshot.data()!;
     }
 
     return userList;
   }
-
-
 }

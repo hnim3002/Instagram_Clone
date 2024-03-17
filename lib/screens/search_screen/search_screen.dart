@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:instagram_clon/Widgets/search_user_card_widgets.dart';
+import 'package:instagram_clon/Widgets/user_card_widgets.dart';
 import 'package:instagram_clon/providers/user_provider.dart';
 import 'package:instagram_clon/resources/firestore_method.dart';
 import 'package:instagram_clon/screens/search_screen/user_profile_info_screen.dart';
@@ -174,14 +174,7 @@ class CustomSearchDelegate extends SearchDelegate {
           itemCount: updatedCombinedData.length,
           itemBuilder: (context, index) {
             Map<String, dynamic> user = updatedCombinedData[index];
-            return GestureDetector(
-              onTap: () {
-                //Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfileInfoScreen(uid: user[kKeyUsersId],)));
-                //Navigator.pushNamed(context, "/other-user-info", arguments: user[kKeyUsersId]);
-                Navigator.push(context, PageTransition(type: PageTransitionType.rightToLeft, child: UserProfileInfoScreen(uid: user[kKeyUsersId],)));
-              },
-              child: UserCard(userData: user)
-            );
+            return UserCard(userData: user);
           },
         );
       },

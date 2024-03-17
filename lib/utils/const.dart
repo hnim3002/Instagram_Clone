@@ -31,3 +31,19 @@ const kKeyCommentId = "commentId";
 const kKeySenderId = "senderId";
 const kKeyReceiverId = "receiverId";
 const kKeyReplyId = "replyId";
+
+
+const kKeyCollectionChatRooms = "chats";
+const kKeyChatRoomId = "chatId";
+const kKeyIsSeen = "isSeen";
+const kKeyParticipantsId = "participantsId";
+const kKeyLastMessage = "lastMessage";
+
+const kKeySubCollectionMessages = "messages";
+const kKeyMessageId = "messageId";
+const kKeyMessageContent = "messageContent";
+const kKeyMessageType = "type";
+
+const kKeyCollectionActive = "actives";
+const kKeyIsActive = "isActive";
+

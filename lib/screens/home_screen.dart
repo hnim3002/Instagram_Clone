@@ -95,7 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       enableFeedback: false,
                       color: isDarkMode ? Colors.white : Colors.black,
                       iconSize: 25,
-                      onPressed: () {},
+                      onPressed: () {
+                        widget.toChatScreen();
+                      },
                       icon: const Icon(
                         Symbols.chat_rounded,
                         weight: 500,

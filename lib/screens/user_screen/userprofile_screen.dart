@@ -26,9 +26,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Future<void> signOut() async {
     try {
       await FirebaseAuth.instance.signOut();
-      if (!mounted) return;
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()));
+
     } catch (e) {
       print('Error signing out: $e');
     }

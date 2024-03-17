@@ -16,7 +16,6 @@ import 'package:instagram_clon/screens/search_screen/user_profile_info_screen.da
 import 'package:instagram_clon/screens/select_img.dart';
 import 'package:instagram_clon/screens/search_screen/search_screen.dart';
 import 'package:instagram_clon/screens/user_screen/edit_user_screen.dart';
-import 'package:page_route_animator/page_route_animator.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';

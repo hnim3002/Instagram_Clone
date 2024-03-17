@@ -220,7 +220,7 @@ class _PostCardState extends State<PostCard> {
 
   @override
   Widget build(BuildContext context) {
-
+    String postId = Provider.of<PostsProvider>(context, listen: false).postData![widget.index]["post"][kKeyPostId];
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
     bool isLike;
@@ -230,19 +230,19 @@ class _PostCardState extends State<PostCard> {
       isLike = Provider.of<PostsProvider>(context)
           .subPostData[widget.index]["post"][kKeyLike]
           .contains(widget.user.uid!);
-      numberOfLike = Provider.of<PostsProvider>(context)
+      numberOfLike = Provider.of<PostsProvider>(context, listen: false)
           .subPostData[widget.index]["post"][kKeyLike]
           .length;
-      numberOfComment = Provider.of<PostsProvider>(context)
+      numberOfComment = Provider.of<PostsProvider>(context, listen: false)
           .subPostData[widget.index]["comment"];
     } else {
       isLike = Provider.of<PostsProvider>(context)
           .postData![widget.index]["post"][kKeyLike]
           .contains(widget.user.uid!);
-      numberOfLike = Provider.of<PostsProvider>(context)
+      numberOfLike = Provider.of<PostsProvider>(context, listen: false)
           .postData![widget.index]["post"][kKeyLike]
           .length;
-      numberOfComment = Provider.of<PostsProvider>(context)
+      numberOfComment = Provider.of<PostsProvider>(context, listen: false)
           .postData![widget.index]["comment"];
     }
 
@@ -340,7 +340,10 @@ class _PostCardState extends State<PostCard> {
                           color: isDarkMode ? Colors.white : Colors.black,
                           iconSize: 25,
                           onPressed: () async {
-                            isSmallLike = true;
+                            Provider.of<PostsProvider>(context, listen: false).postIndex =
+                                widget.index;
+                              isSmallLike = true;
+
                             if (widget.isSub) {
                               for (var i = 0;
                                   i < Provider.of<PostsProvider>(context,
@@ -385,19 +388,14 @@ class _PostCardState extends State<PostCard> {
                                   widget.user.uid!,
                                   !isLike);
                             } else {
-                              Provider.of<PostsProvider>(context, listen: false)
-                                  .refreshNumberOfLike(
-                                      !Provider.of<PostsProvider>(context,
-                                              listen: false)
-                                          .postData![widget.index]["post"]
-                                              [kKeyLike]
-                                          .contains(widget.user.uid!),
-                                      widget.user.uid!);
+
+                              Provider.of<PostsProvider>(context, listen: false).refreshNumberOfLike(
+                                  !Provider.of<PostsProvider>(context, listen: false)
+                                      .postData![widget.index]["post"][kKeyLike]
+                                      .contains(widget.user.uid!),
+                                  widget.user.uid!);
                               await FirestoreMethods().updateLikePost(
-                                  Provider.of<PostsProvider>(context,
-                                              listen: false)
-                                          .postData![widget.index]["post"]
-                                      [kKeyPostId],
+                                  postId,
                                   widget.user.uid!,
                                   !isLike);
                             }
