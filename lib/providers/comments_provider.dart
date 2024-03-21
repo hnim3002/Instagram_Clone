@@ -1,11 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:instagram_clon/resources/auth_method.dart';
+
 import 'package:instagram_clon/resources/firestore_method.dart';
 import 'package:instagram_clon/utils/const.dart';
-import 'package:provider/provider.dart';
 
-import '../models/user.dart';
-import 'comments_state_provider.dart';
 
 class CommentsProvider with ChangeNotifier {
   String? _postId;

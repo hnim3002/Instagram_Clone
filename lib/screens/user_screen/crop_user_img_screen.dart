@@ -3,9 +3,9 @@ import 'package:custom_image_crop/custom_image_crop.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:instagram_clon/screens/post_screen/posting_screen.dart';
+
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
+
 
 import '../../providers/user_provider.dart';
 import '../../resources/firestore_method.dart';

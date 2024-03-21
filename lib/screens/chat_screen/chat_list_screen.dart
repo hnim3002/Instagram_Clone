@@ -41,15 +41,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
         .orderBy(kKeyTimestamp, descending: true)
         .get();
 
-    // List<String> userList = [];
-    // for (var chatRoom in chatRoomSnapshot.docs) {
-    //   for (var user in chatRoom[kKeyParticipantsId]) {
-    //     if (user != FirebaseAuth.instance.currentUser!.uid) {
-    //       userList.add(user);
-    //     }
-    //   }
-    // }
-
     List userList = chatRoomSnapshot.docs
         .expand((chatRoom) => chatRoom[kKeyParticipantsId])
         .where((user) => user != FirebaseAuth.instance.currentUser!.uid)

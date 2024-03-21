@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:instagram_clon/screens/login_screen.dart';
+
+
 import 'package:instagram_clon/screens/user_screen/edit_user_screen.dart';
 import 'package:instagram_clon/screens/user_follow_data_screen.dart';
 import 'package:material_symbols_icons/symbols.dart';

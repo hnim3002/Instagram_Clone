@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clon/screens/chat_screen/messaging_screen.dart';
 import 'package:instagram_clon/screens/user_follow_data_screen.dart';
@@ -22,6 +23,7 @@ class UserProfileInfoScreen extends StatefulWidget {
 
 class _UserProfileInfoScreenState extends State<UserProfileInfoScreen> {
   ValueNotifier<Map<String, dynamic>?> userData = ValueNotifier<Map<String, dynamic>?>(null);
+  String chatRoomId = '';
 
   String? userId;
   String? userName;
@@ -35,6 +37,7 @@ class _UserProfileInfoScreenState extends State<UserProfileInfoScreen> {
 
 
   Future<void> getUserData() async {
+    chatRoomId = await FirestoreMethods().getChatRoomId(FirebaseAuth.instance.currentUser!.uid ,widget.uid);
     userData.value = await FirestoreMethods().getAUser(widget.uid);
     userId = userData.value![kKeyUsersId];
     userName = userData.value![kKeyUserName];
@@ -218,7 +221,7 @@ class _UserProfileInfoScreenState extends State<UserProfileInfoScreen> {
                                         Navigator.of(context, rootNavigator: true).push(
                                             MaterialPageRoute(
                                                 builder: (context) =>
-                                                    MessagingScreen(userData: userData.value!)));
+                                                    MessagingScreen(userData: userData.value!, chatRoomId: chatRoomId,)));
                                       },
                                       style: ElevatedButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(

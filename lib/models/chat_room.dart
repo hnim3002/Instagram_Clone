@@ -7,6 +7,7 @@ import '../utils/const.dart';
 class ChatRoom {
   final String? chatId;
   final bool? isSeen;
+  final String? senderId;
   final List? participantsId;
   final String? lastMessage;
   final Timestamp? timestamp;
@@ -15,6 +16,7 @@ class ChatRoom {
   const ChatRoom({
     required this.chatId,
     required this.isSeen,
+    required this.senderId,
     required this.participantsId,
     required this.lastMessage,
     required this.timestamp,
@@ -23,6 +25,7 @@ class ChatRoom {
   Map<String, dynamic> toJson() => {
     kKeyChatRoomId: chatId,
     kKeyIsSeen: isSeen,
+    kKeySenderId: senderId,
     kKeyParticipantsId : participantsId,
     kKeyLastMessage: lastMessage,
     kKeyTimestamp: timestamp,
@@ -36,6 +39,7 @@ class ChatRoom {
     return ChatRoom(
         chatId: data?[kKeyChatRoomId],
         isSeen: data?[kKeyIsSeen],
+        senderId: data?[kKeySenderId],
         participantsId: data?[kKeyParticipantsId],
         lastMessage: data?[kKeyLastMessage],
         timestamp: data?[kKeyTimestamp],);
@@ -45,6 +49,7 @@ class ChatRoom {
     return {
       if (chatId != null) kKeyChatRoomId: chatId,
       if (isSeen != null) kKeyIsSeen: isSeen,
+      if (senderId != null) kKeySenderId: senderId,
       if (participantsId != null)  kKeyParticipantsId: participantsId,
       if (lastMessage != null)  kKeyLastMessage: lastMessage,
       if (timestamp != null)  kKeyTimestamp: timestamp,

@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:instagram_clon/screens/search_screen/user_profile_info_screen.dart';
 import 'package:instagram_clon/utils/color_schemes.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user.dart' as model;
@@ -161,6 +163,16 @@ class _UserListTileState extends State<UserListTile> {
         placeholder: (context, url) => const CircularProgressIndicator(),
         errorWidget: (context, url, error) => const Icon(Icons.error),
       ),
+      onTap: () {
+        Navigator.push(
+            context,
+            PageTransition(
+                type: PageTransitionType.rightToLeft,
+                child: UserProfileInfoScreen(
+                  uid: widget.userData[kKeyUsersId],
+                )));
+
+      },
       title: Text(widget.userData[kKeyUserName]),
       subtitle: Text(widget.userData[kKeyFullName]),
       trailing: !widget.isFollowers

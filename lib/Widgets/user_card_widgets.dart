@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:instagram_clon/utils/const.dart';
 import 'package:page_transition/page_transition.dart';
 
-import '../models/user.dart';
+
 import '../screens/search_screen/user_profile_info_screen.dart';
 
 class UserCard extends StatelessWidget {

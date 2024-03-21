@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expandable_text/expandable_text.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clon/Widgets/like_animation_widgets.dart';
 import 'package:instagram_clon/resources/firestore_method.dart';
@@ -8,11 +9,13 @@ import 'package:instagram_clon/resources/firestore_method.dart';
 import 'package:instagram_clon/utils/const.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../providers/comments_provider.dart';
 import '../providers/posts_provider.dart';
 import '../screens/post_comment_screen.dart';
+import '../screens/search_screen/user_profile_info_screen.dart';
 
 class PostCard extends StatefulWidget {
   final User user;
@@ -42,11 +45,12 @@ class _PostCardState extends State<PostCard> {
   late ImageStreamListener _postImageStreamListener;
   late CachedNetworkImageProvider _userImageProvider;
   late CachedNetworkImageProvider _postImageProvider;
-  late var commentProvider ;
+  late var commentProvider;
 
   @override
   void initState() {
     super.initState();
+
     commentProvider = Provider.of<CommentsProvider>(context, listen: false);
     if (widget.isSub) {
       postPhotoUrl = Provider.of<PostsProvider>(context, listen: false)
@@ -212,15 +216,14 @@ class _PostCardState extends State<PostCard> {
     );
   }
 
-
-
   Future<void> getPostData() async {
     await Provider.of<PostsProvider>(context, listen: false).refreshPostData();
   }
 
   @override
   Widget build(BuildContext context) {
-    String postId = Provider.of<PostsProvider>(context, listen: false).postData![widget.index]["post"][kKeyPostId];
+    String postId = Provider.of<PostsProvider>(context, listen: false)
+        .postData![widget.index]["post"][kKeyPostId];
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
     bool isLike;
@@ -261,9 +264,23 @@ class _PostCardState extends State<PostCard> {
                     const SizedBox(
                       width: 10,
                     ),
-                    Text(
-                      userName,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            PageTransition(
+                                type: PageTransitionType.rightToLeft,
+                                child: UserProfileInfoScreen(
+                                  uid: Provider.of<PostsProvider>(context,
+                                              listen: false)
+                                          .postData![widget.index]["user"]
+                                      [kKeyUsersId],
+                                )));
+                      },
+                      child: Text(
+                        userName,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
                     ),
                     const Expanded(child: SizedBox()),
                     IconButton(
@@ -340,13 +357,14 @@ class _PostCardState extends State<PostCard> {
                           color: isDarkMode ? Colors.white : Colors.black,
                           iconSize: 25,
                           onPressed: () async {
-                            Provider.of<PostsProvider>(context, listen: false).postIndex =
-                                widget.index;
-                              isSmallLike = true;
+                            Provider.of<PostsProvider>(context, listen: false)
+                                .postIndex = widget.index;
+                            isSmallLike = true;
 
                             if (widget.isSub) {
                               for (var i = 0;
-                                  i < Provider.of<PostsProvider>(context,
+                                  i <
+                                      Provider.of<PostsProvider>(context,
                                               listen: false)
                                           .postData!
                                           .length;
@@ -359,7 +377,9 @@ class _PostCardState extends State<PostCard> {
                                             listen: false)
                                         .subPostData[0]
                                         .toString()) {
-                                  Provider.of<PostsProvider>(context, listen: false).postIndex = i;
+                                  Provider.of<PostsProvider>(context,
+                                          listen: false)
+                                      .postIndex = i;
 
                                   Provider.of<PostsProvider>(context,
                                           listen: false)
@@ -388,16 +408,16 @@ class _PostCardState extends State<PostCard> {
                                   widget.user.uid!,
                                   !isLike);
                             } else {
-
-                              Provider.of<PostsProvider>(context, listen: false).refreshNumberOfLike(
-                                  !Provider.of<PostsProvider>(context, listen: false)
-                                      .postData![widget.index]["post"][kKeyLike]
-                                      .contains(widget.user.uid!),
-                                  widget.user.uid!);
+                              Provider.of<PostsProvider>(context, listen: false)
+                                  .refreshNumberOfLike(
+                                      !Provider.of<PostsProvider>(context,
+                                              listen: false)
+                                          .postData![widget.index]["post"]
+                                              [kKeyLike]
+                                          .contains(widget.user.uid!),
+                                      widget.user.uid!);
                               await FirestoreMethods().updateLikePost(
-                                  postId,
-                                  widget.user.uid!,
-                                  !isLike);
+                                  postId, widget.user.uid!, !isLike);
                             }
                           },
                           icon: isLike
@@ -482,43 +502,44 @@ class _PostCardState extends State<PostCard> {
         : const PostCardPlaceHolder();
   }
 
+
   void showBottomSheet() {
     showModalBottomSheet<void>(
-        useRootNavigator: true,
-        isScrollControlled: true,
-        backgroundColor: Colors.white,
-        useSafeArea: true,
-        context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      useSafeArea: true,
+      context: context,
 
-        builder: (BuildContext context) {
-          return PopScope(
-            canPop: false,
-            onPopInvoked: (bool didPop) {
-              if (didPop) {
-                return;
-              }
-              Provider.of<CommentsProvider>(context, listen: false).numberOfReply = [];
-              Provider.of<CommentsProvider>(context, listen: false).deleteCommentData();
-              Provider.of<CommentsProvider>(context, listen: false).deleteReplyData();
-              Navigator.pop(context);
-            },
-            child: PostCommentLayout(
-              userPhoto: widget.user.photoUrl.toString(),
-              postId: widget.isSub
-                  ? Provider.of<PostsProvider>(context, listen: false)
-                      .subPostData[widget.index]["post"][kKeyPostId]
-                  : Provider.of<PostsProvider>(context, listen: false)
-                      .postData![widget.index]["post"][kKeyPostId],
-              uid: widget.user.uid.toString(),
-              userName: widget.user.username.toString(), isSub: widget.isSub,
-            ),
-          );
-        },
-     ).whenComplete(() {
-       List<int> temp = [];
-       commentProvider.numberOfReply = temp;
-       commentProvider.deleteCommentData();
-       commentProvider.deleteReplyData();
+      builder: (BuildContext context) {
+        return PopScope(
+          canPop: false,
+          onPopInvoked: (bool didPop) {
+            if (didPop) {
+              return;
+            }
+            Provider.of<CommentsProvider>(context, listen: false).numberOfReply = [];
+            Provider.of<CommentsProvider>(context, listen: false).deleteCommentData();
+            Provider.of<CommentsProvider>(context, listen: false).deleteReplyData();
+            Navigator.pop(context);
+          },
+          child: PostCommentLayout(
+            userPhoto: widget.user.photoUrl.toString(),
+            postId: widget.isSub
+                ? Provider.of<PostsProvider>(context, listen: false)
+                .subPostData[widget.index]["post"][kKeyPostId]
+                : Provider.of<PostsProvider>(context, listen: false)
+                .postData![widget.index]["post"][kKeyPostId],
+            uid: widget.user.uid.toString(),
+            userName: widget.user.username.toString(), isSub: widget.isSub,
+          ),
+        );
+      },
+    ).whenComplete(() {
+      List<int> temp = [];
+      commentProvider.numberOfReply = temp;
+      commentProvider.deleteCommentData();
+      commentProvider.deleteReplyData();
     });
   }
 }

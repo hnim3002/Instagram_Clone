@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
-import 'package:instagram_clon/providers/posts_state_provider.dart';
+
 import 'package:instagram_clon/resources/firestore_method.dart';
 import 'package:provider/provider.dart';
 

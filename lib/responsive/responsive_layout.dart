@@ -5,7 +5,7 @@ import 'package:instagram_clon/resources/firestore_method.dart';
 import 'package:instagram_clon/utils/dimenstion.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/comments_provider.dart';
+
 import '../providers/posts_provider.dart';
 import '../providers/posts_state_provider.dart';
 

@@ -1,6 +1,6 @@
 
 
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:instagram_clon/resources/auth_method.dart';
@@ -10,9 +10,7 @@ import 'package:instagram_clon/utils/color_schemes.dart';
 import '../Widgets/custom_divider_widgets.dart';
 import '../Widgets/custom_button_widgets.dart';
 import '../Widgets/input_textfield_widgets.dart';
-import '../responsive/mobile_screen.dart';
-import '../responsive/responsive_layout.dart';
-import '../responsive/web_screen.dart';
+
 import '../utils/utils.dart';
 
 class LoginScreen extends StatefulWidget {

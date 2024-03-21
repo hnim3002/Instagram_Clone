@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+
 import 'package:instagram_clon/screens/Home_screen.dart';
 import 'package:instagram_clon/screens/chat_screen/chat_list_screen.dart';
 import 'package:instagram_clon/screens/select_img.dart';
@@ -8,11 +8,11 @@ import 'package:instagram_clon/screens/search_screen/search_screen.dart';
 import 'package:instagram_clon/screens/user_screen/userprofile_screen.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:page_transition/page_transition.dart';
+
 import 'package:provider/provider.dart';
 
 import '../providers/user_provider.dart';
-import '../screens/notification_screen.dart';
+
 
 class MobileScreenLayout extends StatefulWidget {
   const MobileScreenLayout({super.key});
@@ -124,6 +124,7 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   Widget build(BuildContext context) {
+
     super.build(context);
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;

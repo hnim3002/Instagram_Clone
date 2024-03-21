@@ -1,15 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clon/Widgets/user_card_widgets.dart';
 import 'package:instagram_clon/providers/user_provider.dart';
 import 'package:instagram_clon/resources/firestore_method.dart';
-import 'package:instagram_clon/screens/search_screen/user_profile_info_screen.dart';
-import 'package:instagram_clon/screens/sub_post_screen.dart';
+
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:page_transition/page_transition.dart';
+
 import 'package:provider/provider.dart';
-import 'package:transparent_image/transparent_image.dart';
 
 import '../../Widgets/custom_gridview_img_widgets.dart';
 import '../../utils/const.dart';

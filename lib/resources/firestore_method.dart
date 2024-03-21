@@ -299,14 +299,16 @@ class FirestoreMethods {
   Future<String> uploadChatRoom(
       {required String uid, required String receiverId}) async {
     String error = "Some thing when wrong";
+    String chatId = '';
     try {
-      String chatId = const Uuid().v1();
+      chatId = const Uuid().v1();
       ChatRoom chatRoom = ChatRoom(
           chatId: chatId,
           isSeen: false,
           participantsId: [uid, receiverId],
           lastMessage: '',
-          timestamp: Timestamp.fromDate(DateTime.now()));
+          timestamp: Timestamp.fromDate(DateTime.now()),
+          senderId: '');
 
       await _firestore
           .collection(kKeyCollectionChatRooms)
@@ -316,11 +318,11 @@ class FirestoreMethods {
     } catch (e) {
       error = e.toString();
     }
-    return error;
+    return chatId;
   }
 
   Future<String> uploadChatMessageText(
-      {required String uid, required String messageContent}) async {
+      {required String uid, required String messageContent, required String chatRoomId}) async {
     String error = "Some thing when wrong";
     try {
       String messageId = const Uuid().v1();
@@ -328,14 +330,23 @@ class FirestoreMethods {
       ChatMessage chatMessage = ChatMessage(
           messageContent: messageContent,
           timestamp: Timestamp.fromDate(DateTime.now()),
+          isSeen: false,
           senderId: uid,
           messageId: messageId ,
           type: 'text');
 
       await _firestore
           .collection(kKeyCollectionChatRooms)
-          .doc(messageId )
+          .doc(chatRoomId)
+          .collection(kKeySubCollectionMessages)
+          .doc(messageId)
           .set(chatMessage.toFirestore());
+
+      await _firestore.collection(kKeyCollectionChatRooms).doc(chatRoomId).update({
+        kKeyLastMessage: messageContent,
+        kKeyTimestamp: Timestamp.fromDate(DateTime.now()),
+        kKeySenderId: uid,
+      });
       error = 'Success';
     } catch (e) {
       error = e.toString();
@@ -354,6 +365,7 @@ class FirestoreMethods {
       ChatMessage chatMessage = ChatMessage(
           messageContent: postPhotoUrl,
           timestamp: Timestamp.fromDate(DateTime.now()),
+          isSeen: false,
           senderId: uid,
           messageId: messageId,
           type: 'img');
@@ -810,4 +822,22 @@ class FirestoreMethods {
 
     return userList;
   }
+
+  Future<String> getChatRoomId(String uid, String otherUid) async {
+
+    var chatRoomSnapshot = await _firestore
+        .collection(kKeyCollectionChatRooms)
+        .where(kKeyParticipantsId, arrayContains: uid)
+        .get();
+
+    for(var chatRoom in chatRoomSnapshot.docs){
+      if(chatRoom.get(kKeyParticipantsId).contains(otherUid) && chatRoom.get(kKeyParticipantsId).length == 2) {
+        return chatRoom.get(kKeyChatRoomId);
+      }
+    }
+
+    return "";
+  }
+
+
 }

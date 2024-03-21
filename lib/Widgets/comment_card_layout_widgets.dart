@@ -1,15 +1,14 @@
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
+
 import 'package:provider/provider.dart';
 
 import '../providers/comments_provider.dart';
-import '../providers/comments_state_provider.dart';
-import '../resources/firestore_method.dart';
+
 import '../utils/const.dart';
 import 'comment_card_widgets.dart';
-import 'like_animation_widgets.dart';
+
 
 class CommentCardLayout extends StatefulWidget {
   final int index;

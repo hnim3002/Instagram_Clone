@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:instagram_clon/Widgets/custom_divider_widgets.dart';
 import 'package:instagram_clon/resources/firestore_method.dart';
-import 'package:instagram_clon/utils/utils.dart';
+
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
