@@ -1,18 +1,22 @@
+import 'dart:async';
+import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' as foundation;
-import 'package:flutter/widgets.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:image_picker/image_picker.dart';
+
 import 'package:instagram_clon/resources/firestore_method.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:page_transition/page_transition.dart';
+import '../../Widgets/message_bubble_widgets.dart';
 import '../../utils/const.dart';
 import '../search_screen/user_profile_info_screen.dart';
+import 'img_picker_messaging.dart';
 
 class MessagingScreen extends StatefulWidget {
   final String? chatRoomId;
@@ -33,7 +37,6 @@ class _MessagingScreenState extends State<MessagingScreen> {
 
   late final Stream<QuerySnapshot> chatRoomStream;
 
-
   Future<void> createRoom() async {
     String id =  await FirestoreMethods().uploadChatRoom(uid: FirebaseAuth.instance.currentUser!.uid, receiverId: widget.userData[kKeyUsersId]);
     if (!mounted) return;
@@ -45,14 +48,13 @@ class _MessagingScreenState extends State<MessagingScreen> {
   @override
   void initState() {
     super.initState();
-    print('MessagingScreen initState');
     if(widget.chatRoomId == '') {
       createRoom();
     } else {
       chatRoomId = widget.chatRoomId!;
     }
 
-    chatRoomStream =  FirebaseFirestore.instance
+    chatRoomStream = FirebaseFirestore.instance
         .collection(kKeyCollectionChatRooms)
         .doc(widget.chatRoomId)
         .collection(kKeySubCollectionMessages)
@@ -67,6 +69,58 @@ class _MessagingScreenState extends State<MessagingScreen> {
     return differenceInMinutes;
   }
 
+  Future<void> sendImage(dynamic file) async {
+    await FirestoreMethods().uploadChatMessageImg(
+        uid: FirebaseAuth.instance.currentUser!.uid,
+        file: await compressImage(await convertToUint8List(file), 80),
+        chatRoomId: chatRoomId );
+    if (!mounted) return;
+    Navigator.pop(context);
+  }
+
+  Future<Uint8List> convertToUint8List(img) async {
+    return await img.readAsBytes();
+  }
+
+  Future<Uint8List> compressImage(Uint8List imageBytes, int quality) async {
+    try {
+      final compressedImageBytes = await FlutterImageCompress.compressWithList(
+        imageBytes,
+        quality: quality, // Compression quality (0 to 100)
+      );
+      return compressedImageBytes;
+    } catch (e) {
+      print('Error compressing image: $e');
+      return imageBytes;
+    }
+  }
+
+  Future<XFile?> getImgCamera() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? photo = await picker.pickImage(source: ImageSource.camera);
+    return photo;
+  }
+
+  void showBottomSheet() {
+    showModalBottomSheet<void>(
+        useSafeArea: true,
+        isScrollControlled: true,
+        context: context,
+        builder: (BuildContext context) {
+          return DraggableScrollableSheet(
+            expand: false,
+            snap: true,
+            snapSizes: const [0.7, 1],
+            initialChildSize: 0.7, // this is initial fraction of the screen that the sheet takes up
+            minChildSize: 0.25, // 25% of screen height
+            maxChildSize: 1, //
+            builder: (BuildContext context, ScrollController scrollController) {
+              return ImgPickerMessaging(scrollController: scrollController, chatRoomId: chatRoomId,);
+            },
+          );
+        });
+  }
+
   StreamBuilder<QuerySnapshot<Object?>> buildStreamBuilder() {
     return  StreamBuilder<QuerySnapshot>(
         stream:chatRoomStream,
@@ -74,12 +128,9 @@ class _MessagingScreenState extends State<MessagingScreen> {
           if (snapshot.hasError) {
             return const Text('Something went wrong');
           }
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return  const CircularProgressIndicator();
           }
-
-
 
           return ListView.builder(
             physics: const ClampingScrollPhysics(),
@@ -273,6 +324,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                 isSeenVisible: isSeenVisible,
                 timestamp: message[kKeyTimestamp],
                 userPhoto: widget.userData[kKeyUserPhoto],
+                messageType: message[kKeyMessageType],
               );
             },
           );
@@ -282,6 +334,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
 
   @override
   void dispose() {
+
     _controller.dispose();
     super.dispose();
   }
@@ -303,9 +356,12 @@ class _MessagingScreenState extends State<MessagingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print('MessagingScreen build');
     return Scaffold(
-        appBar: AppBar(title: UserListTileInfo(widget: widget)),
+        appBar: AppBar(
+            title: UserListTileInfo(widget: widget),
+            backgroundColor: Colors.white,
+            scrolledUnderElevation: 0.0,
+        ),
         body: PopScope(
           canPop: false,
           onPopInvoked: (didPop) {
@@ -337,7 +393,13 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   children: [
                     Expanded(child: buildStreamBuilder()),
                     InputLayout(
-                      onEmojiPressed: () => toggleEmojiShowing(), isEmojiShowing: _emojiShowing, chatRoomId: chatRoomId,
+                      onEmojiPressed: () => toggleEmojiShowing(),
+                      isEmojiShowing: _emojiShowing,
+                      chatRoomId: chatRoomId,
+                      onImgPress: () => showBottomSheet(),
+                      onCameraPress: () async {
+                        sendImage(await getImgCamera());
+                      },
                     ),
                     Offstage(
                       offstage: !_emojiShowing,
@@ -375,9 +437,11 @@ class _MessagingScreenState extends State<MessagingScreen> {
 class InputLayout extends StatefulWidget {
   const InputLayout({
     super.key,
-    required this.onEmojiPressed, required this.isEmojiShowing, required this.chatRoomId,
+    required this.onEmojiPressed, required this.isEmojiShowing, required this.chatRoomId, required this.onImgPress, required this.onCameraPress,
   });
 
+  final Function onCameraPress;
+  final Function onImgPress;
   final Function onEmojiPressed;
   final bool isEmojiShowing;
   final String chatRoomId;
@@ -409,9 +473,6 @@ class _InputLayoutState extends State<InputLayout> {
       });
     }
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -502,7 +563,9 @@ class _InputLayoutState extends State<InputLayout> {
                 enableFeedback: false,
                 color: Colors.black,
                 iconSize: 27,
-                onPressed: () {},
+                onPressed: () {
+                  widget.onImgPress();
+                },
                 icon: const Icon(
                   Symbols.image_rounded,
                   opticalSize: 40,
@@ -515,7 +578,9 @@ class _InputLayoutState extends State<InputLayout> {
                 enableFeedback: false,
                 color: Colors.black,
                 iconSize: 27,
-                onPressed: () {},
+                onPressed: () {
+                  widget.onCameraPress();
+                },
                 icon: const Icon(
                   Symbols.photo_camera,
                   opticalSize: 40,
@@ -557,249 +622,7 @@ class _InputLayoutState extends State<InputLayout> {
   }
 }
 
-// class MessageContent extends StatefulWidget {
-//   const MessageContent({
-//     super.key,
-//     required this.widget, required this.chatRoomId,
-//   });
-//
-//   final MessagingScreen widget;
-//   final String? chatRoomId;
-//
-//   @override
-//   State<MessageContent> createState() => _MessageContentState();
-// }
-//
-// class _MessageContentState extends State<MessageContent> {
-//
-//
-//   int calculateDifferenceInMinutes(DateTime time1, DateTime time2) {
-//     Duration difference = time2.difference(time1);
-//     int differenceInMinutes = difference.inMinutes.abs();
-//     return differenceInMinutes;
-//   }
-//
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return StreamBuilder<QuerySnapshot>(
-//         stream: FirebaseFirestore.instance
-//             .collection(kKeyCollectionChatRooms)
-//             .doc(widget.chatRoomId)
-//             .collection(kKeySubCollectionMessages)
-//             .orderBy(kKeyTimestamp, descending: true)
-//             .snapshots(),
-//         builder: (context, snapshot) {
-//           if (snapshot.hasError) {
-//             return const Text('Something went wrong');
-//           }
-//
-//           if (snapshot.connectionState == ConnectionState.waiting) {
-//             return  const CircularProgressIndicator();
-//           }
-//
-//
-//
-//           return Expanded(
-//             child: ListView.builder(
-//               physics: const ClampingScrollPhysics(),
-//               shrinkWrap: true,
-//               itemCount: snapshot.data!.docs.length,
-//               reverse: true,
-//
-//               itemBuilder: (context, index) {
-//
-//                 int position = 0;
-//
-//                 var message = snapshot.data!.docs[index];
-//                 bool isYou =
-//                 snapshot.data!.docs[index][kKeySenderId] == FirebaseAuth.instance.currentUser!.uid
-//                     ? true
-//                     : false;
-//
-//                 bool isVisible;
-//
-//                 bool isSeenVisible = false;
-//
-//                 var previousMessageTime;
-//                 var previousMessageUserName;
-//                 var nextMessageTime;
-//                 var nextMessageUserName;
-//
-//                 if(index != 0) {
-//                   previousMessageTime =
-//                       snapshot.data!.docs[index - 1][kKeyTimestamp].toDate();
-//                   previousMessageUserName =
-//                   snapshot.data!.docs[index - 1][kKeySenderId];
-//                 }
-//                 if(index != snapshot.data!.docs.length - 1) {
-//                   nextMessageTime =
-//                       snapshot.data!.docs[index + 1][kKeyTimestamp].toDate();
-//                   nextMessageUserName = snapshot.data!.docs[index + 1][kKeySenderId];
-//                 }
-//
-//
-//                 var currentMessageTime =
-//                 snapshot.data!.docs[index][kKeyTimestamp].toDate();
-//
-//
-//                 var currentUserName = FirebaseAuth.instance.currentUser!.uid;
-//
-//                 if (isYou) {
-//                   if (index == 0) {
-//                     if (calculateDifferenceInMinutes(
-//                         nextMessageTime, currentMessageTime) <
-//                         5 &&
-//                         nextMessageUserName == currentUserName) {
-//                       position = 1;
-//                     } else if (nextMessageUserName == currentUserName &&
-//                         calculateDifferenceInMinutes(
-//                             nextMessageTime, currentMessageTime) >=
-//                             5 ||
-//                         nextMessageUserName != currentUserName) {
-//                       position = 0;
-//                     }
-//                   } else if (index == snapshot.data!.docs.length - 1) {
-//                     if (calculateDifferenceInMinutes(
-//                         previousMessageTime, currentMessageTime) <
-//                         5 &&
-//                         previousMessageUserName == currentUserName) {
-//                       position = 3;
-//                     } else if (previousMessageUserName == currentUserName &&
-//                         calculateDifferenceInMinutes(
-//                             previousMessageTime, currentMessageTime) >=
-//                             5 ||
-//                         previousMessageUserName != currentUserName) {
-//                       position = 0;
-//                     }
-//                   } else {
-//                     if (previousMessageUserName != currentUserName &&
-//                         nextMessageUserName == currentUserName &&
-//                         calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
-//                             5 ||
-//                         calculateDifferenceInMinutes(previousMessageTime, currentMessageTime) >= 5 &&
-//                             calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
-//                                 5) {
-//                       position = 1;
-//                     } else if (previousMessageUserName == currentUserName &&
-//                         nextMessageUserName == currentUserName &&
-//                         calculateDifferenceInMinutes(
-//                             previousMessageTime, currentMessageTime) <
-//                             5 &&
-//                         calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
-//                             5) {
-//                       position = 2;
-//                     } else if (previousMessageUserName == currentUserName &&
-//                         nextMessageUserName != currentUserName &&
-//                         calculateDifferenceInMinutes(
-//                             previousMessageTime, currentMessageTime) <
-//                             5 ||
-//                         calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) >= 5 &&
-//                             calculateDifferenceInMinutes(
-//                                 previousMessageTime, currentMessageTime) <
-//                                 5) {
-//                       position = 3;
-//                     } else if (previousMessageUserName != currentUserName &&
-//                         nextMessageUserName != currentUserName ||
-//                         previousMessageUserName == currentUserName &&
-//                             nextMessageUserName == currentUserName &&
-//                             calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) >= 5 &&
-//                             calculateDifferenceInMinutes(previousMessageTime, currentMessageTime) >= 5) {
-//                       position = 0;
-//                     }
-//                   }
-//                 } else {
-//                   if (index == 0) {
-//                     if (calculateDifferenceInMinutes(
-//                         nextMessageTime, currentMessageTime) <
-//                         5 &&
-//                         nextMessageUserName != currentUserName) {
-//                       position = 1;
-//                     } else if (nextMessageUserName != currentUserName &&
-//                         calculateDifferenceInMinutes(
-//                             nextMessageTime, currentMessageTime) >=
-//                             5 ||
-//                         nextMessageUserName == currentUserName) {
-//                       position = 0;
-//                     }
-//                   } else if (index == snapshot.data!.docs.length - 1) {
-//                     if (calculateDifferenceInMinutes(
-//                         previousMessageTime, currentMessageTime) <
-//                         5 &&
-//                         previousMessageUserName != currentUserName) {
-//                       position = 6;
-//                     } else if (previousMessageUserName != currentUserName &&
-//                         calculateDifferenceInMinutes(
-//                             previousMessageTime, currentMessageTime) >=
-//                             5 ||
-//                         previousMessageUserName == currentUserName) {
-//                       position = 0;
-//                     }
-//                   } else {
-//                     if (previousMessageUserName == currentUserName &&
-//                         nextMessageUserName != currentUserName &&
-//                         calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
-//                             5 ||
-//                         calculateDifferenceInMinutes(previousMessageTime, currentMessageTime) >= 5 &&
-//                             calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
-//                                 5) {
-//                       position = 4;
-//                     } else if (previousMessageUserName != currentUserName &&
-//                         nextMessageUserName != currentUserName &&
-//                         calculateDifferenceInMinutes(
-//                             previousMessageTime, currentMessageTime) <
-//                             5 &&
-//                         calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
-//                             5) {
-//                       position = 5;
-//                     } else if (previousMessageUserName != currentUserName &&
-//                         nextMessageUserName == currentUserName ||
-//                         calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) >= 5 &&
-//                             calculateDifferenceInMinutes(
-//                                 previousMessageTime, currentMessageTime) <
-//                                 5) {
-//                       position = 6;
-//                     } else if (previousMessageUserName != currentUserName &&
-//                         nextMessageUserName != currentUserName ||
-//                         previousMessageUserName == currentUserName &&
-//                             nextMessageUserName == currentUserName &&
-//                             calculateDifferenceInMinutes(
-//                                 nextMessageTime, currentMessageTime) >=
-//                                 5 &&
-//                             calculateDifferenceInMinutes(previousMessageTime, currentMessageTime) >= 5) {
-//                       position = 0;
-//                     }
-//                   }
-//                 }
-//
-//                 bool isTimestampVisible = index == snapshot.data!.docs.length - 1 ||
-//                     calculateDifferenceInMinutes(
-//                         snapshot.data!.docs[index + 1]['timestamp'].toDate(),
-//                         snapshot.data!.docs[index]['timestamp'].toDate()) >= 60 ||
-//                     position == 3 ||
-//                     position == 6
-//                     ? true
-//                     : false;
-//
-//                 if(index == 0 && isYou && message[kKeyIsSeen] == true) {
-//                   isSeenVisible = true;
-//                 }
-//
-//                 return MessageBubble(
-//                   text: message[kKeyMessageContent],
-//                   isUser: isYou,
-//                   position: position,
-//                   isTimestampVisible: isTimestampVisible,
-//                   isSeenVisible: isSeenVisible,
-//                   timestamp: message[kKeyTimestamp],
-//                 );
-//               },
-//             ),
-//           );
-//         }
-//     );
-//   }
-// }
+
 
 class UserListTileInfo extends StatelessWidget {
   const UserListTileInfo({
@@ -849,165 +672,5 @@ class UserListTileInfo extends StatelessWidget {
 }
 
 
-class MessageBubble extends StatelessWidget {
-  const MessageBubble(
-      {super.key,
-        required this.text,
-        required this.isUser,
-        required this.position,
-        required this.isTimestampVisible, required this.isSeenVisible, required this.timestamp, required this.userPhoto});
 
-  final String text;
-  final bool isUser;
-  final int position;
-  final bool isTimestampVisible;
-  final bool isSeenVisible;
-  final Timestamp timestamp;
-  final String userPhoto;
-
-  BorderRadius borderCustomIsUser() {
-    if (position == 3) {
-      return const BorderRadius.only(
-        topRight: Radius.circular(30.0),
-        topLeft: Radius.circular(30.0),
-        bottomLeft: Radius.circular(30.0),
-        bottomRight: Radius.circular(10.0),
-      );
-    } else if (position == 2) {
-      return const BorderRadius.only(
-        topRight: Radius.circular(10.0),
-        topLeft: Radius.circular(30.0),
-        bottomLeft: Radius.circular(30.0),
-        bottomRight: Radius.circular(10.0),
-      );
-    } else if (position == 0) {
-      return const BorderRadius.only(
-        topRight: Radius.circular(30.0),
-        topLeft: Radius.circular(30.0),
-        bottomLeft: Radius.circular(30.0),
-        bottomRight: Radius.circular(30.0),
-      );
-    }
-    return const BorderRadius.only(
-      topRight: Radius.circular(10.0),
-      topLeft: Radius.circular(30.0),
-      bottomLeft: Radius.circular(30.0),
-      bottomRight: Radius.circular(30.0),
-    );
-  }
-
-  BorderRadius borderCustomNotUser() {
-    if (position == 4) {
-      return const BorderRadius.only(
-        topRight: Radius.circular(30.0),
-        topLeft: Radius.circular(10.0),
-        bottomLeft: Radius.circular(30.0),
-        bottomRight: Radius.circular(30.0),
-      );
-    } else if (position == 5) {
-      return const BorderRadius.only(
-        topRight: Radius.circular(30.0),
-        topLeft: Radius.circular(10.0),
-        bottomLeft: Radius.circular(10.0),
-        bottomRight: Radius.circular(30.0),
-      );
-    } else if (position == 0) {
-      return const BorderRadius.only(
-        topRight: Radius.circular(30.0),
-        topLeft: Radius.circular(30.0),
-        bottomLeft: Radius.circular(30.0),
-        bottomRight: Radius.circular(30.0),
-      );
-    }
-    return const BorderRadius.only(
-      topRight: Radius.circular(30.0),
-      topLeft: Radius.circular(30.0),
-      bottomLeft: Radius.circular(10.0),
-      bottomRight: Radius.circular(30.0),
-    );
-  }
-
-  String formatTimestamp(Timestamp timestamp) {
-    // Convert Firestore Timestamp to DateTime
-    DateTime dateTime = timestamp.toDate();
-
-    // Format the DateTime object
-    String formattedDateTime = DateFormat('MMM d, h:mm a').format(dateTime);
-
-    return formattedDateTime;
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: Column(
-        crossAxisAlignment:
-        isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Offstage(
-              offstage: !isTimestampVisible,
-              child: Center(child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: Text(formatTimestamp(timestamp), style: const TextStyle(color: Colors.grey, fontSize: 13),),
-              ))
-          ),
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 2 / 3,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: isUser
-                  ? MainAxisAlignment.end
-                  : MainAxisAlignment.start,
-              children: [
-                Opacity(
-                  opacity: !isUser && position == 0 || position == 4 ? 1 : 0,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: CircleAvatar(
-                      radius: 15,
-                      backgroundImage: CachedNetworkImageProvider(userPhoto),
-                    ),
-                  ),
-                ),
-                Card(
-                  elevation: 0,
-                  margin: const EdgeInsets.symmetric(vertical: 1.0),
-                  shape: RoundedRectangleBorder(
-
-                    borderRadius:
-                    isUser ? borderCustomIsUser() : borderCustomNotUser(),
-                  ),
-                  color: isUser
-                      ? const Color(0xFF8523C4)
-                      : const Color(0xFFEEEEEE),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
-                    child: Text(text,
-                        style: TextStyle(
-                            color: isUser
-                                ? Colors.white
-                                : Colors.black,
-                            fontSize: 15.0)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Offstage(
-            offstage: !isSeenVisible,
-            child: const Padding(
-              padding: EdgeInsets.all(5.0),
-              child: Text("Seen", style: TextStyle(color: Colors.grey, fontSize: 15),),
-            ),
-          ),
-          position == 1 || position == 0 || position == 4 ? const SizedBox(height: 10) : const SizedBox(height: 0),
-        ],
-      ),
-    );
-  }
-}
 

@@ -355,7 +355,7 @@ class FirestoreMethods {
   }
 
   Future<String> uploadChatMessageImg(
-      {required String uid, required Uint8List file}) async {
+      {required String uid, required Uint8List file, required String chatRoomId}) async {
     String error = "Some thing when wrong";
     try {
       String messageId = const Uuid().v1();
@@ -368,12 +368,21 @@ class FirestoreMethods {
           isSeen: false,
           senderId: uid,
           messageId: messageId,
-          type: 'img');
+          type: 'image');
 
       await _firestore
           .collection(kKeyCollectionChatRooms)
+          .doc(chatRoomId)
+          .collection(kKeySubCollectionMessages)
           .doc(messageId)
           .set(chatMessage.toFirestore());
+
+      await _firestore.collection(kKeyCollectionChatRooms).doc(chatRoomId).update({
+        kKeyLastMessage: "Sent a photo",
+        kKeyTimestamp: Timestamp.fromDate(DateTime.now()),
+        kKeySenderId: uid,
+      });
+
       error = 'Success';
     } catch (e) {
       error = e.toString();

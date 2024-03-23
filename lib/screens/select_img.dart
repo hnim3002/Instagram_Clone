@@ -31,8 +31,6 @@ class _PostScreenState extends State<PostScreen> {
     initMedia();
   }
 
-
-
   Future<bool> _promptPermissionSetting() async {
     if (Platform.isIOS) {
       if (await Permission.photos.request().isGranted ||

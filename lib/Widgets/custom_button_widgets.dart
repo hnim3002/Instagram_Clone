@@ -13,8 +13,7 @@ class CustomButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
         style: ButtonStyle(
-          padding:
-              MaterialStateProperty.all<EdgeInsetsGeometry>(EdgeInsets.zero),
+          padding: MaterialStateProperty.all<EdgeInsetsGeometry>(EdgeInsets.zero),
         ),
         onPressed: () {
           onPressed();

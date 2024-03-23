@@ -259,13 +259,19 @@ class ActiveUserWidget extends StatelessWidget {
             width: 10,
           ),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
+            stream: user!.following!.isNotEmpty
+                ? FirebaseFirestore.instance
                 .collection(kKeyCollectionUsers)
-                .where(FieldPath.documentId, whereIn: user!.following!)
-                .snapshots(),
+                .where(FieldPath.documentId, whereIn: user?.following!)
+                .snapshots()
+                : const Stream.empty(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.data == null) {
+                return const SizedBox();
               }
               List<Map<String, dynamic>> userData = [];
               for (var docSnapshot in snapshot.data!.docs) {
@@ -290,7 +296,7 @@ class ActiveUserWidget extends StatelessWidget {
                             backgroundImage: CachedNetworkImageProvider(
                                 userData[index][kKeyUserPhoto]),
                           ),
-                          Text(userData[index][kKeyUserName])
+                          Text(userData[index][kKeyFullName])
                         ],
                       ),
                     );

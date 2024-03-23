@@ -22,6 +22,8 @@ class StorageMethods {
 
   Future<String> uploadChatImageToStorage(String childName, Uint8List file, String id) async {
     Reference ref = _storage.ref().child(childName).child(id);
+    String ids = const Uuid().v1();
+    ref = ref.child(ids);
     UploadTask uploadTask = ref.putData(file);
     TaskSnapshot snap = await uploadTask;
     String downloadUrl = await snap.ref.getDownloadURL();
