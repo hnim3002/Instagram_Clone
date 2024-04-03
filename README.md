@@ -1,16 +1,6 @@
-# instagram_clon
+![433738160_1198555331124804_6570370333691342272_n](https://github.com/hnim3002/Instagram_Clone/assets/89145725/e9c91cd6-4568-4fd6-b1f6-6559a7c90647)
+![434114676_293479823840360_2390937132904317187_n](https://github.com/hnim3002/Instagram_Clone/assets/89145725/02f52606-10d1-432b-bd0e-51fddbb3e73c)
+![434033578_834252951857610_3193959107178849704_n](https://github.com/hnim3002/Instagram_Clone/assets/89145725/e470d2ea-ae76-4da7-bbbd-252c20c5f37e)
+![434117416_1546888129428579_5860204189562441856_n](https://github.com/hnim3002/Instagram_Clone/assets/89145725/cbb274cb-027a-485f-b44f-a936903da8ae)
+![433720017_970506774437233_6544660004318689789_n](https://github.com/hnim3002/Instagram_Clone/assets/89145725/96c53adb-cab1-4219-a343-4d11876dfb9a)
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
