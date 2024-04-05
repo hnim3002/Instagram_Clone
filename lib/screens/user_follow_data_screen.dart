@@ -12,7 +12,15 @@ import '../utils/const.dart';
 
 class UserFollowData extends StatefulWidget {
   final int intIndex;
-  const UserFollowData({super.key, required this.intIndex});
+  final List<dynamic> userFollowers;
+  final List<dynamic> userFollowing;
+  final String userName;
+  const UserFollowData(
+      {super.key,
+      required this.intIndex,
+      required this.userFollowers,
+      required this.userFollowing,
+      required this.userName});
 
   @override
   State<UserFollowData> createState() => _UserFollowDataState();
@@ -20,22 +28,25 @@ class UserFollowData extends StatefulWidget {
 
 class _UserFollowDataState extends State<UserFollowData> {
   Future<List<Map<String, dynamic>>> getFollowersData() async {
-    return FirestoreMethods().getUserFollow(
-        Provider.of<UserProvider>(context, listen: false).user!.followers!);
+    return FirestoreMethods().getUserFollow(widget.userFollowers);
   }
 
   Future<List<Map<String, dynamic>>> getFollowingData() async {
-    return FirestoreMethods().getUserFollow(
-        Provider.of<UserProvider>(context, listen: false).user!.following!);
+    return FirestoreMethods().getUserFollow(widget.userFollowing);
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
-    final model.User? user = Provider.of<UserProvider>(context, listen: false).user;
-    final int userFollowers = user!.followers!.length;
-    final int userFollowing = user.following!.length;
+
+    final int userFollowers = widget.userFollowers.length;
+    final int userFollowing = widget.userFollowing.length;
     return DefaultTabController(
       initialIndex: widget.intIndex,
       length: 2,
@@ -43,7 +54,7 @@ class _UserFollowDataState extends State<UserFollowData> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           title: Text(
-            user.username!,
+            widget.userName,
             style: const TextStyle(
                 letterSpacing: 0.5, fontSize: 20, fontWeight: FontWeight.bold),
           ),
@@ -137,12 +148,18 @@ class _UserListTileState extends State<UserListTile> {
   }
 
   Future<void> updateUserFollowers(bool isFollowing) async {
-    await FirestoreMethods().updateUserFollowers(Provider.of<UserProvider>(context, listen: false).user!.uid!, isFollowing, widget.userData[kKeyUsersId]);
+    await FirestoreMethods().updateUserFollowers(
+        Provider.of<UserProvider>(context, listen: false).user!.uid!,
+        isFollowing,
+        widget.userData[kKeyUsersId]);
     updateUserData();
   }
 
   Future<void> updateUserFollowing(bool isFollowing) async {
-    await FirestoreMethods().updateUserFollowing(Provider.of<UserProvider>(context, listen: false).user!.uid!, isFollowing, widget.userData[kKeyUsersId]);
+    await FirestoreMethods().updateUserFollowing(
+        Provider.of<UserProvider>(context, listen: false).user!.uid!,
+        isFollowing,
+        widget.userData[kKeyUsersId]);
     updateUserData();
   }
 
@@ -171,7 +188,6 @@ class _UserListTileState extends State<UserListTile> {
                 child: UserProfileInfoScreen(
                   uid: widget.userData[kKeyUsersId],
                 )));
-
       },
       title: Text(widget.userData[kKeyUserName]),
       subtitle: Text(widget.userData[kKeyFullName]),
@@ -181,7 +197,7 @@ class _UserListTileState extends State<UserListTile> {
                 setState(() {
                   isBtnActive = !isBtnActive;
                 });
-                if(isBtnActive) {
+                if (isBtnActive) {
                   updateUserFollowing(true);
                 } else {
                   updateUserFollowing(false);
@@ -190,7 +206,8 @@ class _UserListTileState extends State<UserListTile> {
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 25),
                 minimumSize: const Size(50, 35),
-                backgroundColor:  isBtnActive ? const Color(0xFFEEEEEE) : blueBtnColor,
+                backgroundColor:
+                    isBtnActive ? const Color(0xFFEEEEEE) : blueBtnColor,
                 elevation: 0.1,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -208,7 +225,7 @@ class _UserListTileState extends State<UserListTile> {
                 setState(() {
                   isBtnActive = !isBtnActive;
                 });
-                if(isBtnActive) {
+                if (isBtnActive) {
                   updateUserFollowers(true);
                 } else {
                   updateUserFollowers(false);
@@ -217,7 +234,8 @@ class _UserListTileState extends State<UserListTile> {
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 25),
                 minimumSize: const Size(60, 35),
-                backgroundColor: isBtnActive ? const Color(0xFFEEEEEE) : blueBtnColor,
+                backgroundColor:
+                    isBtnActive ? const Color(0xFFEEEEEE) : blueBtnColor,
                 elevation: 0.1,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(

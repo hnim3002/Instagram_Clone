@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -35,6 +36,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
   bool _emojiShowing = false;
   String chatRoomId = '';
 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late final Stream<QuerySnapshot> chatRoomStream;
 
   Future<void> createRoom() async {
@@ -54,7 +56,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
       chatRoomId = widget.chatRoomId!;
     }
 
-    chatRoomStream = FirebaseFirestore.instance
+    chatRoomStream = _firestore
         .collection(kKeyCollectionChatRooms)
         .doc(widget.chatRoomId)
         .collection(kKeySubCollectionMessages)
@@ -121,6 +123,32 @@ class _MessagingScreenState extends State<MessagingScreen> {
         });
   }
 
+  Future<void> updateFirestore(String chatRoomId) async {
+    try {
+      // Create a batch object
+      WriteBatch batch = _firestore.batch();
+      DocumentReference chatRoomRef = _firestore.collection(kKeyCollectionChatRooms).doc(chatRoomId);
+      DocumentSnapshot chatRoomSnapshot = await chatRoomRef.get();
+      if (chatRoomSnapshot.exists && (chatRoomSnapshot.data() as Map<String, dynamic>)[kKeySenderId] != FirebaseAuth.instance.currentUser!.uid) {
+        batch.update(chatRoomRef, {kKeyIsSeen: true});
+      }
+      QuerySnapshot messagesSnapshot = await chatRoomRef.collection(kKeySubCollectionMessages)
+          .where(kKeyIsSeen, isEqualTo: false)
+          .get();
+
+      for (var doc in messagesSnapshot.docs) {
+        if (doc[kKeySenderId] != FirebaseAuth.instance.currentUser!.uid) {
+          DocumentReference messageRef = chatRoomRef.collection(kKeySubCollectionMessages).doc(doc.id);
+          batch.update(messageRef, {kKeyIsSeen: true});
+        }
+      }
+      await batch.commit();
+    } catch (error) {
+      print('Error updating Firestore: $error');
+      rethrow; // Rethrow the error to be caught by the FutureBuilder
+    }
+  }
+
   StreamBuilder<QuerySnapshot<Object?>> buildStreamBuilder() {
     return  StreamBuilder<QuerySnapshot>(
         stream:chatRoomStream,
@@ -131,6 +159,8 @@ class _MessagingScreenState extends State<MessagingScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return  const CircularProgressIndicator();
           }
+
+          updateFirestore(chatRoomId);
 
           return ListView.builder(
             physics: const ClampingScrollPhysics(),
@@ -157,151 +187,164 @@ class _MessagingScreenState extends State<MessagingScreen> {
               var nextMessageTime;
               var nextMessageUserName;
 
-              if(index != 0) {
-                previousMessageTime =
-                    snapshot.data!.docs[index - 1][kKeyTimestamp].toDate();
-                previousMessageUserName =
-                snapshot.data!.docs[index - 1][kKeySenderId];
-              }
-              if(index != snapshot.data!.docs.length - 1) {
-                nextMessageTime =
-                    snapshot.data!.docs[index + 1][kKeyTimestamp].toDate();
-                nextMessageUserName = snapshot.data!.docs[index + 1][kKeySenderId];
-              }
 
-
-              var currentMessageTime =
-              snapshot.data!.docs[index][kKeyTimestamp].toDate();
-
-
-              var currentUserName = FirebaseAuth.instance.currentUser!.uid;
-
-              if (isYou) {
-                if (index == 0) {
-                  if (calculateDifferenceInMinutes(
-                      nextMessageTime, currentMessageTime) <
-                      5 &&
-                      nextMessageUserName == currentUserName) {
-                    position = 1;
-                  } else if (nextMessageUserName == currentUserName &&
-                      calculateDifferenceInMinutes(
-                          nextMessageTime, currentMessageTime) >=
-                          5 ||
-                      nextMessageUserName != currentUserName) {
-                    position = 0;
-                  }
-                } else if (index == snapshot.data!.docs.length - 1) {
-                  if (calculateDifferenceInMinutes(
-                      previousMessageTime, currentMessageTime) <
-                      5 &&
-                      previousMessageUserName == currentUserName) {
-                    position = 3;
-                  } else if (previousMessageUserName == currentUserName &&
-                      calculateDifferenceInMinutes(
-                          previousMessageTime, currentMessageTime) >=
-                          5 ||
-                      previousMessageUserName != currentUserName) {
-                    position = 0;
-                  }
-                } else {
-                  if (previousMessageUserName != currentUserName &&
-                      nextMessageUserName == currentUserName &&
-                      calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
-                          5 ||
-                      calculateDifferenceInMinutes(previousMessageTime, currentMessageTime) >= 5 &&
-                          calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
-                              5) {
-                    position = 1;
-                  } else if (previousMessageUserName == currentUserName &&
-                      nextMessageUserName == currentUserName &&
-                      calculateDifferenceInMinutes(
-                          previousMessageTime, currentMessageTime) <
-                          5 &&
-                      calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
-                          5) {
-                    position = 2;
-                  } else if (previousMessageUserName == currentUserName &&
-                      nextMessageUserName != currentUserName &&
-                      calculateDifferenceInMinutes(
-                          previousMessageTime, currentMessageTime) <
-                          5 ||
-                      calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) >= 5 &&
-                          calculateDifferenceInMinutes(
-                              previousMessageTime, currentMessageTime) <
-                              5) {
-                    position = 3;
-                  } else if (previousMessageUserName != currentUserName &&
-                      nextMessageUserName != currentUserName ||
-                      previousMessageUserName == currentUserName &&
-                          nextMessageUserName == currentUserName &&
-                          calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) >= 5 &&
-                          calculateDifferenceInMinutes(previousMessageTime, currentMessageTime) >= 5) {
-                    position = 0;
-                  }
-                }
+              if(snapshot.data!.docs.length == 1) {
+                position = 0;
               } else {
-                if (index == 0) {
-                  if (calculateDifferenceInMinutes(
-                      nextMessageTime, currentMessageTime) <
-                      5 &&
-                      nextMessageUserName != currentUserName) {
-                    position = 1;
-                  } else if (nextMessageUserName != currentUserName &&
-                      calculateDifferenceInMinutes(
-                          nextMessageTime, currentMessageTime) >=
-                          5 ||
-                      nextMessageUserName == currentUserName) {
-                    position = 0;
-                  }
-                } else if (index == snapshot.data!.docs.length - 1) {
-                  if (calculateDifferenceInMinutes(
-                      previousMessageTime, currentMessageTime) <
-                      5 &&
-                      previousMessageUserName != currentUserName) {
-                    position = 6;
-                  } else if (previousMessageUserName != currentUserName &&
-                      calculateDifferenceInMinutes(
-                          previousMessageTime, currentMessageTime) >=
-                          5 ||
-                      previousMessageUserName == currentUserName) {
-                    position = 0;
+                if(index != 0) {
+                  previousMessageTime =
+                      snapshot.data!.docs[index - 1][kKeyTimestamp].toDate();
+                  previousMessageUserName =
+                  snapshot.data!.docs[index - 1][kKeySenderId];
+                }
+                if(index != snapshot.data!.docs.length - 1) {
+                  nextMessageTime =
+                      snapshot.data!.docs[index + 1][kKeyTimestamp].toDate();
+                  nextMessageUserName = snapshot.data!.docs[index + 1][kKeySenderId];
+                }
+
+
+
+                var currentMessageTime =
+                snapshot.data!.docs[index][kKeyTimestamp].toDate();
+
+
+                var currentUserName = FirebaseAuth.instance.currentUser!.uid;
+
+                if (isYou) {
+                  if (index == 0) {
+                    if (calculateDifferenceInMinutes(
+                        nextMessageTime, currentMessageTime) <
+                        5 &&
+                        nextMessageUserName == currentUserName) {
+                      position = 1;
+                    } else if (nextMessageUserName == currentUserName &&
+                        calculateDifferenceInMinutes(
+                            nextMessageTime, currentMessageTime) >=
+                            5 ||
+                        nextMessageUserName != currentUserName) {
+                      position = 0;
+                    }
+                  } else if (index == snapshot.data!.docs.length - 1) {
+                    if (calculateDifferenceInMinutes(
+                        previousMessageTime, currentMessageTime) <
+                        5 &&
+                        previousMessageUserName == currentUserName) {
+                      position = 3;
+                    } else if (previousMessageUserName == currentUserName &&
+                        calculateDifferenceInMinutes(
+                            previousMessageTime, currentMessageTime) >=
+                            5 ||
+                        previousMessageUserName != currentUserName) {
+                      position = 0;
+                    }
+                  } else {
+                    if (previousMessageUserName != currentUserName &&
+                        nextMessageUserName == currentUserName &&
+                        calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
+                            5 ||
+                        calculateDifferenceInMinutes(previousMessageTime, currentMessageTime) >= 5 &&
+                            calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
+                                5) {
+                      position = 1;
+                    } else if (previousMessageUserName == currentUserName &&
+                        nextMessageUserName == currentUserName &&
+                        calculateDifferenceInMinutes(
+                            previousMessageTime, currentMessageTime) <
+                            5 &&
+                        calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
+                            5) {
+                      position = 2;
+                    } else if (
+                    calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) >= 5 &&
+                        previousMessageUserName != currentUserName) {
+                      position = 0;
+                    }
+                    else if (previousMessageUserName == currentUserName &&
+                        nextMessageUserName != currentUserName &&
+                        calculateDifferenceInMinutes(
+                            previousMessageTime, currentMessageTime) <
+                            5 ||
+                        calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) >= 5 &&
+                            calculateDifferenceInMinutes(
+                                previousMessageTime, currentMessageTime) <
+                                5) {
+                      position = 3;
+                    } else if (previousMessageUserName != currentUserName &&
+                        nextMessageUserName != currentUserName ||
+                        previousMessageUserName == currentUserName &&
+                            nextMessageUserName == currentUserName &&
+                            calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) >= 5 &&
+                            calculateDifferenceInMinutes(previousMessageTime, currentMessageTime) >= 5) {
+                      position = 0;
+                    }
                   }
                 } else {
-                  if (previousMessageUserName == currentUserName &&
-                      nextMessageUserName != currentUserName &&
-                      calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
-                          5 ||
-                      calculateDifferenceInMinutes(previousMessageTime, currentMessageTime) >= 5 &&
-                          calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
-                              5) {
-                    position = 4;
-                  } else if (previousMessageUserName != currentUserName &&
-                      nextMessageUserName != currentUserName &&
-                      calculateDifferenceInMinutes(
-                          previousMessageTime, currentMessageTime) <
-                          5 &&
-                      calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
-                          5) {
-                    position = 5;
-                  } else if (previousMessageUserName != currentUserName &&
-                      nextMessageUserName == currentUserName ||
-                      calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) >= 5 &&
-                          calculateDifferenceInMinutes(
-                              previousMessageTime, currentMessageTime) <
-                              5) {
-                    position = 6;
-                  } else if (previousMessageUserName != currentUserName &&
-                      nextMessageUserName != currentUserName ||
-                      previousMessageUserName == currentUserName &&
-                          nextMessageUserName == currentUserName &&
-                          calculateDifferenceInMinutes(
-                              nextMessageTime, currentMessageTime) >=
-                              5 &&
-                          calculateDifferenceInMinutes(previousMessageTime, currentMessageTime) >= 5) {
-                    position = 0;
+                  if (index == 0) {
+                    if (calculateDifferenceInMinutes(
+                        nextMessageTime, currentMessageTime) <
+                        5 &&
+                        nextMessageUserName != currentUserName) {
+                      position = 4;
+                    } else if (nextMessageUserName != currentUserName &&
+                        calculateDifferenceInMinutes(
+                            nextMessageTime, currentMessageTime) >=
+                            5 ||
+                        nextMessageUserName == currentUserName) {
+                      position = 0;
+                    }
+                  } else if (index == snapshot.data!.docs.length - 1) {
+                    if (calculateDifferenceInMinutes(
+                        previousMessageTime, currentMessageTime) <
+                        5 &&
+                        previousMessageUserName != currentUserName) {
+                      position = 6;
+                    } else if (previousMessageUserName != currentUserName &&
+                        calculateDifferenceInMinutes(
+                            previousMessageTime, currentMessageTime) >=
+                            5 ||
+                        previousMessageUserName == currentUserName) {
+                      position = 0;
+                    }
+                  } else {
+                    if (previousMessageUserName == currentUserName &&
+                        nextMessageUserName != currentUserName &&
+                        calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
+                            5 ||
+                        calculateDifferenceInMinutes(previousMessageTime, currentMessageTime) >= 5 &&
+                            calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
+                                5) {
+                      position = 4;
+                    } else if (previousMessageUserName != currentUserName &&
+                        nextMessageUserName != currentUserName &&
+                        calculateDifferenceInMinutes(
+                            previousMessageTime, currentMessageTime) <
+                            5 &&
+                        calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) <
+                            5) {
+                      position = 5;
+                    } else if (previousMessageUserName != currentUserName &&
+                        nextMessageUserName == currentUserName ||
+                        calculateDifferenceInMinutes(nextMessageTime, currentMessageTime) >= 5 &&
+                            calculateDifferenceInMinutes(
+                                previousMessageTime, currentMessageTime) <
+                                5) {
+                      position = 6;
+                    } else if (previousMessageUserName != currentUserName &&
+                        nextMessageUserName != currentUserName ||
+                        previousMessageUserName == currentUserName &&
+                            nextMessageUserName == currentUserName &&
+                            calculateDifferenceInMinutes(
+                                nextMessageTime, currentMessageTime) >=
+                                5 &&
+                            calculateDifferenceInMinutes(previousMessageTime, currentMessageTime) >= 5) {
+                      position = 0;
+                    }
                   }
                 }
               }
+
+
 
               bool isTimestampVisible = index == snapshot.data!.docs.length - 1 ||
                   calculateDifferenceInMinutes(

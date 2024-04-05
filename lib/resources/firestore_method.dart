@@ -343,6 +343,7 @@ class FirestoreMethods {
           .set(chatMessage.toFirestore());
 
       await _firestore.collection(kKeyCollectionChatRooms).doc(chatRoomId).update({
+        kKeyIsSeen: false,
         kKeyLastMessage: messageContent,
         kKeyTimestamp: Timestamp.fromDate(DateTime.now()),
         kKeySenderId: uid,
@@ -378,6 +379,7 @@ class FirestoreMethods {
           .set(chatMessage.toFirestore());
 
       await _firestore.collection(kKeyCollectionChatRooms).doc(chatRoomId).update({
+        kKeyIsSeen: false,
         kKeyLastMessage: "Sent a photo",
         kKeyTimestamp: Timestamp.fromDate(DateTime.now()),
         kKeySenderId: uid,

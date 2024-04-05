@@ -46,6 +46,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
         .where((user) => user != FirebaseAuth.instance.currentUser!.uid)
         .toList();
 
+    if(userList.isEmpty) {
+      return;
+    }
 
     QuerySnapshot userSnapshot = await FirebaseFirestore.instance
         .collection(kKeyCollectionUsers)

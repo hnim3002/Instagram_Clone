@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clon/screens/chat_screen/messaging_screen.dart';
 import 'package:instagram_clon/screens/user_follow_data_screen.dart';
@@ -34,6 +35,8 @@ class _UserProfileInfoScreenState extends State<UserProfileInfoScreen> {
   int numberOfFollow = 0;
   int numberOfFollowing = 0;
   bool? isFollowing;
+  List<dynamic> userFollowers = [];
+  List<dynamic> userFollowing = [];
 
 
   Future<void> getUserData() async {
@@ -47,6 +50,8 @@ class _UserProfileInfoScreenState extends State<UserProfileInfoScreen> {
     numberOfPosts = userData.value![kKeyUserPost].length;
     numberOfFollow = userData.value![kKeyUserFollowers].length;
     numberOfFollowing = userData.value![kKeyUserFollowing].length;
+    userFollowers = userData.value![kKeyUserFollowers];
+    userFollowing = userData.value![kKeyUserFollowing];
     if (!mounted) return;
     isFollowing = Provider.of<UserProvider>(context, listen: false).user!.following!.contains(userId);
   }
@@ -152,17 +157,27 @@ class _UserProfileInfoScreenState extends State<UserProfileInfoScreen> {
                                                 context,
                                                 MaterialPageRoute(
                                                     builder: (context) =>
-                                                    const UserFollowData(
-                                                        intIndex: 0)));
+                                                     UserFollowData(
+                                                        intIndex: 0, userFollowers: userFollowers, userFollowing: userFollowing, userName: userName!,)));
                                           },
                                           child: UserDataColumn(
-                                            number: numberOfFollow!,
+                                            number: numberOfFollow,
                                             text: 'followers',
                                           ),
                                         ),
-                                        UserDataColumn(
-                                          number: numberOfFollowing!,
-                                          text: 'following',
+                                        GestureDetector(
+                                          onTap: () {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        UserFollowData(
+                                                          intIndex: 1, userFollowers: userFollowers, userFollowing: userFollowing, userName: userName!,)));
+                                          },
+                                          child: UserDataColumn(
+                                            number: numberOfFollowing,
+                                            text: 'following',
+                                          ),
                                         ),
                                       ],
                                     ),

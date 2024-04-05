@@ -45,76 +45,79 @@ class ChatUserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: CachedNetworkImage(
-        imageUrl: userData[kKeyUserPhoto],
-        imageBuilder: (context, imageProvider) => CircleAvatar(
-          radius: 27,
-          backgroundImage: imageProvider,
-        ),
-        placeholder: (context, url) => const CircularProgressIndicator(),
-        errorWidget: (context, url, error) => const Icon(Icons.error),
-      ),
-      title: chatRoomData[kKeySenderId] == userData[kKeyUsersId]
-          ? Text(userData[kKeyFullName],
-              style: TextStyle(
-                letterSpacing: 0,
-                fontWeight: chatRoomData[kKeyIsSeen]
-                    ? FontWeight.normal
-                    : FontWeight.bold,
-              ))
-          : Text(userData[kKeyFullName],
-              style: const TextStyle(
-                letterSpacing: 0,
-                fontWeight: FontWeight.normal,
-              )),
-      subtitle: chatRoomData[kKeySenderId] == userData[kKeyUsersId]
-          ? RichText(
-              text: TextSpan(
-                style: DefaultTextStyle.of(context).style,
-                children: <TextSpan>[
-                  TextSpan(
-                      text: chatRoomData[kKeyLastMessage],
-                      style: TextStyle(
-                          color: chatRoomData[kKeyIsSeen]
-                              ? Colors.grey
-                              : Colors.black,
-                          fontWeight: chatRoomData[kKeyIsSeen]
-                              ? FontWeight.normal
-                              : FontWeight.bold,
-                          letterSpacing: 0.5)),
-                  TextSpan(
-                      text: " . ${calculateDate(chatRoomData[kKeyTimestamp])}"),
-                ],
-              ),
-            )
-          : Text(
-              "You: ${chatRoomData[kKeyLastMessage]} . ${calculateDate(chatRoomData[kKeyTimestamp])}",
-              style: const TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.normal,
-                  letterSpacing: 0.5),
-            ),
-      trailing: chatRoomData[kKeyIsSeen]
-          ? null
-          : Container(
-              width: 10.0,
-              height: 10.0,
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-                shape: BoxShape.circle,
-              ),
-            ),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MessagingScreen(
-                userData: userData, chatRoomId: chatRoomData[kKeyChatRoomId]),
+    return Offstage(
+      offstage: chatRoomData[kKeyLastMessage] == ''? true : false,
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: CachedNetworkImage(
+          imageUrl: userData[kKeyUserPhoto],
+          imageBuilder: (context, imageProvider) => CircleAvatar(
+            radius: 27,
+            backgroundImage: imageProvider,
           ),
-        );
-      },
+          placeholder: (context, url) => const CircularProgressIndicator(),
+          errorWidget: (context, url, error) => const Icon(Icons.error),
+        ),
+        title: chatRoomData[kKeySenderId] == userData[kKeyUsersId]
+            ? Text(userData[kKeyFullName],
+                style: TextStyle(
+                  letterSpacing: 0,
+                  fontWeight: chatRoomData[kKeyIsSeen]
+                      ? FontWeight.normal
+                      : FontWeight.bold,
+                ))
+            : Text(userData[kKeyFullName],
+                style: const TextStyle(
+                  letterSpacing: 0,
+                  fontWeight: FontWeight.normal,
+                )),
+        subtitle: chatRoomData[kKeySenderId] == userData[kKeyUsersId]
+            ? RichText(
+                text: TextSpan(
+                  style: DefaultTextStyle.of(context).style,
+                  children: <TextSpan>[
+                    TextSpan(
+                        text: chatRoomData[kKeyLastMessage],
+                        style: TextStyle(
+                            color: chatRoomData[kKeyIsSeen]
+                                ? Colors.grey
+                                : Colors.black,
+                            fontWeight: chatRoomData[kKeyIsSeen]
+                                ? FontWeight.normal
+                                : FontWeight.bold,
+                            letterSpacing: 0.5)),
+                    TextSpan(
+                        text: " . ${calculateDate(chatRoomData[kKeyTimestamp])}"),
+                  ],
+                ),
+              )
+            : Text(
+                "You: ${chatRoomData[kKeyLastMessage]} . ${calculateDate(chatRoomData[kKeyTimestamp])}",
+                style: const TextStyle(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.normal,
+                    letterSpacing: 0.5),
+              ),
+        trailing: chatRoomData[kKeyIsSeen]
+            ? null
+            : chatRoomData[kKeySenderId] == userData[kKeyUsersId] ? Container(
+                width: 10.0,
+                height: 10.0,
+                decoration: const BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                ),
+              ) : null,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MessagingScreen(
+                  userData: userData, chatRoomId: chatRoomData[kKeyChatRoomId]),
+            ),
+          );
+        },
+      ),
     );
   }
 }

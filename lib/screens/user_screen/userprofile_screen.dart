@@ -170,8 +170,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                           PageTransition(
                                               type: PageTransitionType
                                                   .rightToLeft,
-                                              child: const UserFollowData(
-                                                  intIndex: 0)));
+                                              child: UserFollowData(
+                                                  intIndex: 0, userFollowers: user.followers!, userFollowing: user.following!, userName: user.username!,)));
                                     },
                                     child: UserDataColumn(
                                       number: numberOfFollow,
@@ -185,8 +185,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                           PageTransition(
                                               type: PageTransitionType
                                                   .rightToLeft,
-                                              child: const UserFollowData(
-                                                  intIndex: 1)));
+                                              child: UserFollowData(
+                                                  intIndex: 1, userFollowers: user.followers!, userFollowing: user.following!, userName: user.username!,)));
                                     },
                                     child: UserDataColumn(
                                       number: numberOfFollowing,

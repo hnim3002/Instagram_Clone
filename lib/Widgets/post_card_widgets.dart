@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expandable_text/expandable_text.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clon/Widgets/like_animation_widgets.dart';
 import 'package:instagram_clon/resources/firestore_method.dart';
@@ -14,6 +13,7 @@ import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../providers/comments_provider.dart';
 import '../providers/posts_provider.dart';
+import '../providers/user_provider.dart';
 import '../screens/post_comment_screen.dart';
 import '../screens/search_screen/user_profile_info_screen.dart';
 
@@ -187,6 +187,9 @@ class _PostCardState extends State<PostCard> {
   }
 
   Future<void> showDeleteDialog(BuildContext context) async {
+    String uid = Provider.of<PostsProvider>(context, listen: false)
+        .postData![widget.index]["user"][kKeyUsersId];
+    String userUid = Provider.of<UserProvider>(context, listen: false).user!.uid!;
     showDialog(
       context: context,
       barrierDismissible: false, // Prevent user from dismissing dialog
@@ -195,7 +198,7 @@ class _PostCardState extends State<PostCard> {
           child: ListView(
             shrinkWrap: true,
             children: [
-              InkWell(
+              uid == userUid ? InkWell(
                 onTap: () {
                   FirestoreMethods().deletePost(
                       Provider.of<PostsProvider>(context, listen: false)
@@ -206,7 +209,17 @@ class _PostCardState extends State<PostCard> {
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  child: Text("Delete"),
+                  child: const Text("Delete"),
+                ),
+              ) : InkWell(
+                onTap: () {
+
+
+                },
+                child: Container(
+                  padding:
+                  const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  child: const Text("Safe Post"),
                 ),
               ),
             ],
