@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:instagram_clon/models/chat_message.dart';
 import 'package:instagram_clon/models/chat_room.dart';
 import 'package:instagram_clon/models/comment_post.dart';
@@ -21,6 +22,29 @@ class FirestoreMethods {
     } catch (e) {
       print(e.toString());
     }
+  }
+
+  Future<void> uploadTokenToServer(String token) async {
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+    try {
+      await _firestore.collection(kKeyCollectionUsers).doc(userId).update({
+        kKeyFMCToken: token,
+      });
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  Future<void> deleteTokenFromServer() async {
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+    try {
+      await _firestore.collection(kKeyCollectionUsers).doc(userId).update({
+        kKeyFMCToken: "",
+      });
+    } catch (e) {
+      print(e.toString());
+    }
+
   }
 
   Future<String> uploadPost({
