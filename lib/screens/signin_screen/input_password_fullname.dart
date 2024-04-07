@@ -43,14 +43,9 @@ class _InputPasswordScreenState extends State<InputPasswordScreen> {
     setState(() {
       _isLoading = false;
     });
-    if (res == "success") {
-      FirebaseAuth.instance.authStateChanges().listen((User? user) {
-        if (user == null) {
-          print('User is currently signed out!');
-        } else {
-          print('User is signed in!${user.email!}');
-        }
-      });
+    if (res == "Success") {
+      print("Sign up success");
+      AuthMethods().signInUser(emailOrPhone: widget.emailPhone, password: _passwordController.text.trim());
     } else {
       if (!mounted) return;
       showSnackBar(res, context);
