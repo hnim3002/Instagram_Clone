@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
   Future<void> getPostData() async {
-    await Provider.of<PostsProvider>(context, listen: false).initPostData();
+    Provider.of<PostsStateProvider>(context, listen: false).setPostDataSize(await Provider.of<PostsProvider>(context, listen: false).initPostData());
   }
 
   @override
