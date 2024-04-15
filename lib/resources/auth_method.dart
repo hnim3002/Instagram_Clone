@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:instagram_clon/models/user.dart' as model;
 import 'package:instagram_clon/utils/const.dart';
 
@@ -11,9 +12,9 @@ class AuthMethods {
     User currentUser = _auth.currentUser!;
 
     final ref = _db.collection("users").doc(currentUser.uid).withConverter(
-      fromFirestore: model.User.fromFirestore,
-      toFirestore: (model.User user, _) => user.toFirestore(),
-    );
+          fromFirestore: model.User.fromFirestore,
+          toFirestore: (model.User user, _) => user.toFirestore(),
+        );
     final snap = await ref.get();
 
     return snap.data();
@@ -33,18 +34,18 @@ class AuthMethods {
       );
 
       model.User user = model.User(
-          email: email,
-          username: username,
-          fullname: fullname,
-          uid: credential.user!.uid,
-          photoUrl: kKeyDefaultAvatar,
-          followers: [],
-          following: [],
-          post: [],
-          like: [],
-          bio: '',
-          save: [],
-          block: [],
+        email: email,
+        username: username,
+        fullname: fullname,
+        uid: credential.user!.uid,
+        photoUrl: kKeyDefaultAvatar,
+        followers: [],
+        following: [],
+        post: [],
+        like: [],
+        bio: '',
+        save: [],
+        block: [],
       );
 
       _db.collection("users").doc(credential.user!.uid).set(user.toJson());
@@ -72,6 +73,40 @@ class AuthMethods {
       }
     } catch (e) {
       print(e);
+    }
+    return error;
+  }
+
+  Future<String> signInWithFb() async {
+    String error = "Some thing when wrong";
+    final LoginResult result = await FacebookAuth.instance.login();
+    if (result.status == LoginStatus.success) {
+      final OAuthCredential facebookAuthCredential =
+          FacebookAuthProvider.credential(result.accessToken!.token);
+      final credential = await FirebaseAuth.instance
+          .signInWithCredential(facebookAuthCredential);
+
+
+      model.User user = model.User(
+        email: credential.user!.email,
+        username: credential.user!.displayName,
+        fullname: '',
+        uid: credential.user!.uid,
+        photoUrl: credential.user!.photoURL,
+        followers: [],
+        following: [],
+        post: [],
+        like: [],
+        bio: '',
+        save: [],
+        block: [],
+      );
+
+      _db.collection("users").doc(credential.user!.uid).set(user.toJson());
+
+    } else {
+      print(result.status);
+      print(result.message);
     }
     return error;
   }

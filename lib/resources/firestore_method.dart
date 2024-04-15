@@ -875,4 +875,47 @@ class FirestoreMethods {
   }
 
 
+
+  Future<List<Map<String, dynamic>>> getNotificationData(String uid) async {
+    List<Map<String, dynamic>> updatedCombinedData = [];
+    QuerySnapshot notificationSnapshot = await _firestore
+        .collection(kKeyCollectionUsers)
+        .doc(uid)
+        .collection(kKeySubCollectionNotifications)
+        .orderBy(kKeyTimestamp, descending: true)
+        .get();
+
+    List<String> userIds =
+    notificationSnapshot.docs.map((doc) => doc[kKeySenderId] as String).toList();
+
+    if (userIds.isEmpty) {
+      return [];
+    }
+
+    // Perform a query to fetch user data based on userIds
+    QuerySnapshot usersSnapshot = await _firestore
+        .collection(kKeyCollectionUsers)
+        .where(FieldPath.documentId, whereIn: userIds)
+        .get();
+
+    // Create a map to store user data
+    Map<String, Map<String, dynamic>> userDataMap = {};
+    for (var doc in usersSnapshot.docs) {
+      userDataMap[doc.id] = doc.data() as Map<String, dynamic>;
+    }
+
+    for (var notificationDoc in notificationSnapshot.docs) {
+      Map<String, dynamic> notificationData = notificationDoc.data() as Map<String, dynamic>;
+      String? userId = notificationData[kKeySenderId] as String?;
+      Map<String, dynamic> userData = userDataMap[userId] ?? {};
+
+      updatedCombinedData.add({
+        'notification': notificationData,
+        'user': userData,
+      });
+    }
+    print(updatedCombinedData);
+    return updatedCombinedData;
+  }
+
 }

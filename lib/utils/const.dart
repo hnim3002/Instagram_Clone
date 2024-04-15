@@ -47,3 +47,7 @@ const kKeyMessageType = "type";
 const kKeyCollectionActive = "actives";
 const kKeyIsActive = "isActive";
 
+const kKeySubCollectionNotifications = "notifications";
+const kKeyNotificationId = "notificationId";
+const kKeyNotificationContent = "notificationContent";
+const kKeyNotificationType = "notificationType";

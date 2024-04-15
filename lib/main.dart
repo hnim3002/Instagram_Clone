@@ -20,7 +20,7 @@ import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
 
-const bool USE_EMULATOR = true;
+const bool USE_EMULATOR = false;
 
 final navigatorKey = GlobalKey<NavigatorState>();
 

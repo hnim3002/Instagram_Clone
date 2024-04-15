@@ -12,6 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/user_provider.dart';
+import '../screens/notification_screen/notificatoin_screen.dart';
 
 
 class MobileScreenLayout extends StatefulWidget {
@@ -219,6 +220,18 @@ class _MainScreenState extends State<MainScreen>
                       onBackSearchPress();
                     },
                     child: const SearchScreen()),
+              );
+            case 3:
+              return CupertinoTabView(
+                builder: (context) => PopScope(
+                    canPop: false,
+                    onPopInvoked: (bool didPop) {
+                      if (didPop) {
+                        return;
+                      }
+                      onBackSearchPress();
+                    },
+                    child: const NotificationScreen()),
               );
             case 4:
               return CupertinoTabView(

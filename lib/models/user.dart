@@ -84,4 +84,8 @@ class User {
       if (block != null) kKeyUserBlock: block,
     };
   }
+
+  bool isUserFollowing(String uid) {
+    return following!.contains(uid);
+  }
 }

@@ -23,9 +23,11 @@ export const onPostCreate = functions.firestore
         const notificationsId: string = uuidv4();
         await db.doc(`users/${follower[i]}/notifications/${notificationsId}`)
           .set({
+            senderId: postData.uid,
             notificationsId: notificationsId,
+            notificationType: 'post',
             postId: postData.postId,
-            content: `${userName} just upload a new post`,
+            notificationContent: `${userName} just upload a new post`,
             Timestamp: Timestamp.now()
           });
       }
@@ -38,21 +40,46 @@ export const onNotificationCreate = functions.firestore
     const userId = context.params.userId;
     const content = snapshot.get('content');
     const postId = snapshot.get('postId');
+    const type = snapshot.get('type');
     const tokenSnapshot = await db.collection('users').doc(userId).get();
     const token = tokenSnapshot.data()?.fcmToken;
+    
 
-    const message: admin.messaging.Message = {
-      token: token,
-      notification: {
-        title: 'New Post',
-        body: content,
-      },
-      data: {
-        postId: postId,
-        uid: userId,
-      },
-    };
-    fcm.send(message);
+    let message: admin.messaging.Message;
+    switch (type) {
+      case 'post':
+        message = {
+          token: token,
+          notification: {
+            title: 'New Post',
+            body: content,
+          },
+          data: {
+            postId: postId,
+            uid: userId,
+            type: type,
+          },
+        };
+        fcm.send(message);
+        break;
+      case 'follow':
+        message = {
+          token: token,
+          notification: {
+            title: 'New Follower',
+            body: content,
+          },
+          data: {
+            uid: userId,
+           
+            type: type,
+          },
+        };
+        fcm.send(message);
+        break;
+    }
+
+
   });
 
 

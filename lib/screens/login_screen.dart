@@ -57,6 +57,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> signInWithFb() async {
+    await AuthMethods().signInWithFb();
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isDarkMode =
@@ -180,7 +184,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      signInWithFb();
+                    },
                   ),
                 ],
               ),
