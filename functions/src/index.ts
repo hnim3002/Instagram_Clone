@@ -24,7 +24,7 @@ export const onPostCreate = functions.firestore
         await db.doc(`users/${follower[i]}/notifications/${notificationsId}`)
           .set({
             senderId: postData.uid,
-            notificationsId: notificationsId,
+            notificationId: notificationsId,
             notificationType: 'post',
             postId: postData.postId,
             notificationContent: `${userName} just upload a new post`,
@@ -35,15 +35,14 @@ export const onPostCreate = functions.firestore
   });
 
 export const onNotificationCreate = functions.firestore
-  .document('users/{userId}/notifications/{notificationsId}')
+  .document('users/{userId}/notifications/{notificationId}')
   .onCreate(async (snapshot, context) => {
     const userId = context.params.userId;
-    const content = snapshot.get('content');
+    const content = snapshot.get('notificationContent');
     const postId = snapshot.get('postId');
-    const type = snapshot.get('type');
+    const type = snapshot.get('notificationType');
     const tokenSnapshot = await db.collection('users').doc(userId).get();
     const token = tokenSnapshot.data()?.fcmToken;
-    
 
     let message: admin.messaging.Message;
     switch (type) {
