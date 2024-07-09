@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:instagram_clon/Widgets/custom_divider_widgets.dart';
 import 'package:instagram_clon/resources/firestore_method.dart';
+import 'package:instagram_clon/riverpod_providers/post_provider.dart';
 
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as model;
 import 'package:uuid/uuid.dart';
 
 import '../../Widgets/custom_button_widgets.dart';
@@ -14,16 +15,19 @@ import '../../models/user.dart';
 import '../../providers/posts_provider.dart';
 import '../../providers/posts_state_provider.dart';
 import '../../providers/user_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class PostingScreen extends StatefulWidget {
+import '../../riverpod_providers/user_provider.dart';
+
+class PostingScreen extends ConsumerStatefulWidget {
   final Uint8List file;
   const PostingScreen({super.key, required this.file});
 
   @override
-  State<PostingScreen> createState() => _PostingScreenState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _PostingScreenState();
 }
 
-class _PostingScreenState extends State<PostingScreen> {
+class _PostingScreenState extends ConsumerState<PostingScreen> {
   final TextEditingController _postController = TextEditingController();
   late FocusNode _focusNode;
   bool isFocus = false;
@@ -97,7 +101,8 @@ class _PostingScreenState extends State<PostingScreen> {
   }
 
   Future<void> getPostData() async {
-    Provider.of<PostsStateProvider>(context, listen: false).setPostDataSize(await Provider.of<PostsProvider>(context, listen: false).initPostData());
+    // Provider.of<PostsStateProvider>(context, listen: false).setPostDataSize(await Provider.of<PostsProvider>(context, listen: false).initPostData());
+    ref.read(postNotifierProvider.notifier).updatePostData();
   }
 
   Future<void> _showDialog(BuildContext context, User user) async {
@@ -139,7 +144,10 @@ class _PostingScreenState extends State<PostingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final model.User? user = Provider.of<UserProvider>(context).user;
+
+    //final model.User? user = model.Provider.of<UserProvider>(context).user;
+    final user = ref.watch(userNotifierProvider);
+
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
     return  Scaffold(
@@ -215,7 +223,7 @@ class _PostingScreenState extends State<PostingScreen> {
                           ],
                         ),
                         onPressed: () {
-                          _showDialog(context, user!);
+                          _showDialog(context, user.asData!.value!);
                         },
                       ),
                     ),

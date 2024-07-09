@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:instagram_clon/screens/Home_screen.dart';
 import 'package:instagram_clon/screens/chat_screen/chat_list_screen.dart';
@@ -12,6 +13,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/user_provider.dart';
+import '../riverpod_providers/user_provider.dart';
 import '../screens/notification_screen/notificatoin_screen.dart';
 
 
@@ -82,7 +84,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   }
 }
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends ConsumerStatefulWidget {
   final Function closeBtnOnPressed;
   final Function toChatScreen;
   final CupertinoTabController cupertinoTabController;
@@ -93,10 +95,10 @@ class MainScreen extends StatefulWidget {
       required this.toChatScreen});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen>
+class _MainScreenState extends ConsumerState<MainScreen>
     with AutomaticKeepAliveClientMixin {
   int _selectedIndex = 0;
 
@@ -125,132 +127,135 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userNotifierProvider);
+
 
     super.build(context);
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
-    return CupertinoTabScaffold(
-        controller: widget.cupertinoTabController,
-        tabBar: CupertinoTabBar(
-          items: <BottomNavigationBarItem>[
-            const BottomNavigationBarItem(
-              icon: Icon(Symbols.home_rounded),
-              activeIcon: Icon(
-                Symbols.home_rounded,
-                fill: 1,
-                weight: 500,
+    return switch (user) {
+      AsyncData(:final value) =>  CupertinoTabScaffold(
+          controller: widget.cupertinoTabController,
+          tabBar: CupertinoTabBar(
+            items: <BottomNavigationBarItem>[
+              const BottomNavigationBarItem(
+                icon: Icon(Symbols.home_rounded),
+                activeIcon: Icon(
+                  Symbols.home_rounded,
+                  fill: 1,
+                  weight: 500,
+                ),
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Symbols.search_rounded),
+                activeIcon: Icon(
+                  Symbols.search_rounded,
+                  weight: 700,
+                ),
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Symbols.add_box_rounded),
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Symbols.favorite),
+                activeIcon: Icon(
+                  Symbols.favorite,
+                  fill: 1,
+                ),
+              ),
+              BottomNavigationBarItem(
+                icon: user.asData!.value!.photoUrl == null
+                    ? const Icon(Icons.person)
+                    : CachedNetworkImage(
+                  imageUrl:
+                  user.asData!.value!.photoUrl!,
+
+                  imageBuilder: (context, imageProvider) => CircleAvatar(
+                    radius: 14,
+                    backgroundImage: imageProvider,
+                  ),
+                  placeholder: (context, url) =>
+                      Container(color: Colors.white60),
+                  errorWidget: (context, url, error) =>
+                  const Icon(Icons.error),
+                ),
+                activeIcon:
+                user.asData!.value!.photoUrl == null
+                    ? const Icon(Icons.person)
+                    : CircleAvatar(
+                  radius: 16,
+                  backgroundImage: CachedNetworkImageProvider(
+                      user.asData!.value!.photoUrl!),
+                ),
+              ),
+            ],
+            height: 55,
+            border: const Border(
+              top: BorderSide(
+                color: Color(0xffAEADB2),
+                width: 0.3,
               ),
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Symbols.search_rounded),
-              activeIcon: Icon(
-                Symbols.search_rounded,
-                weight: 700,
-              ),
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Symbols.add_box_rounded),
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Symbols.favorite),
-              activeIcon: Icon(
-                Symbols.favorite,
-                fill: 1,
-              ),
-            ),
-            BottomNavigationBarItem(
-              icon: Provider.of<UserProvider>(context).user?.photoUrl == null
-                  ? const Icon(Icons.person)
-                  : CachedNetworkImage(
-                      imageUrl:
-                          Provider.of<UserProvider>(context, listen: false)
-                              .user!
-                              .photoUrl!,
-                      imageBuilder: (context, imageProvider) => CircleAvatar(
-                        radius: 14,
-                        backgroundImage: imageProvider,
-                      ),
-                      placeholder: (context, url) =>
-                          Container(color: Colors.white60),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
-                    ),
-              activeIcon:
-                  Provider.of<UserProvider>(context).user?.photoUrl == null
-                      ? const Icon(Icons.person)
-                      : CircleAvatar(
-                          radius: 16,
-                          backgroundImage: CachedNetworkImageProvider(
-                              Provider.of<UserProvider>(context, listen: false)
-                                  .user!
-                                  .photoUrl!),
-                        ),
-            ),
-          ],
-          height: 55,
-          border: const Border(
-            top: BorderSide(
-              color: Color(0xffAEADB2),
-              width: 0.3,
-            ),
+            inactiveColor: isDarkMode ? Colors.white : Colors.black,
+            activeColor: isDarkMode ? Colors.white : Colors.black,
+            backgroundColor: !isDarkMode ? Colors.white : Colors.black,
+            onTap: (index) {
+              setState(() {
+                navigationTapped(index);
+              });
+            },
           ),
-          inactiveColor: isDarkMode ? Colors.white : Colors.black,
-          activeColor: isDarkMode ? Colors.white : Colors.black,
-          backgroundColor: !isDarkMode ? Colors.white : Colors.black,
-          onTap: (index) {
-            setState(() {
-              navigationTapped(index);
-            });
-          },
-        ),
-        tabBuilder: (BuildContext context, int index) {
-          switch (index) {
-            case 0:
-              return CupertinoTabView(
-                builder: (context) => HomeScreen(toChatScreen: () => widget.toChatScreen()),
-              );
-            case 1:
-              return CupertinoTabView(
-                builder: (context) => PopScope(
-                    canPop: false,
-                    onPopInvoked: (bool didPop) {
-                      if (didPop) {
-                        return;
-                      }
-                      onBackSearchPress();
-                    },
-                    child: const SearchScreen()),
-              );
-            case 3:
-              return CupertinoTabView(
-                builder: (context) => PopScope(
-                    canPop: false,
-                    onPopInvoked: (bool didPop) {
-                      if (didPop) {
-                        return;
-                      }
-                      onBackSearchPress();
-                    },
-                    child: const NotificationScreen()),
-              );
-            case 4:
-              return CupertinoTabView(
-                builder: (context) => PopScope(
-                    canPop: false,
-                    onPopInvoked: (bool didPop) {
-                      if (didPop) {
-                        return;
-                      }
-                      onBackSearchPress();
-                    },
-                    child: const UserProfileScreen()),
-              );
-            default:
-              return CupertinoTabView(
-                builder: (context) => Container(),
-              );
-          }
-        });
+          tabBuilder: (BuildContext context, int index) {
+            switch (index) {
+              case 0:
+                return CupertinoTabView(
+                  builder: (context) => HomeScreen(toChatScreen: () => widget.toChatScreen()),
+                );
+              case 1:
+                return CupertinoTabView(
+                  builder: (context) => PopScope(
+                      canPop: false,
+                      onPopInvoked: (bool didPop) {
+                        if (didPop) {
+                          return;
+                        }
+                        onBackSearchPress();
+                      },
+                      child: const SearchScreen()),
+                );
+              case 3:
+                return CupertinoTabView(
+                  builder: (context) => PopScope(
+                      canPop: false,
+                      onPopInvoked: (bool didPop) {
+                        if (didPop) {
+                          return;
+                        }
+                        onBackSearchPress();
+                      },
+                      child: const NotificationScreen()),
+                );
+              case 4:
+                return CupertinoTabView(
+                  builder: (context) => PopScope(
+                      canPop: false,
+                      onPopInvoked: (bool didPop) {
+                        if (didPop) {
+                          return;
+                        }
+                        onBackSearchPress();
+                      },
+                      child: const UserProfileScreen()),
+                );
+              default:
+                return CupertinoTabView(
+                  builder: (context) => Container(),
+                );
+            }
+          }),
+      AsyncError(:final error) => Text('Oops $error'),
+      _ => const CircularProgressIndicator(),
+    };
   }
 
   @override

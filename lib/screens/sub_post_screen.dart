@@ -114,11 +114,7 @@ class _PostSearchScreenState extends State<PostSearchScreen> {
 
                 return ListView(
                   children: [
-                    PostCard(
-                      user: Provider.of<UserProvider>(context, listen: false).user!,
-                      index: 0,
-                      isSub: true,
-                    ),
+
                   ],
                 );
               }),

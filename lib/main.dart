@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:instagram_clon/providers/comments_provider.dart';
 import 'package:instagram_clon/providers/comments_state_provider.dart';
 import 'package:instagram_clon/providers/posts_provider.dart';
@@ -33,7 +34,7 @@ Future<void> main() async {
   if (USE_EMULATOR) {
     await useEmulator();
   }
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 Future<void> useEmulator() async {
@@ -59,53 +60,42 @@ class MyApp extends StatelessWidget {
       statusBarIconBrightness: Brightness
           .dark, // Set the status bar text color// transparent status bar
     ));
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (_) => UserProvider(),
+    return MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData.light(useMaterial3: true).copyWith(
+          scaffoldBackgroundColor: Colors.white,
         ),
-        ChangeNotifierProvider(create: (_) => CommentsStateProvider()),
-        ChangeNotifierProvider(create: (_) => CommentsProvider()),
-        ChangeNotifierProvider(create: (_) => PostsProvider()),
-        ChangeNotifierProvider(create: (_) => PostsStateProvider())
-      ],
-      child: MaterialApp(
-          title: 'Flutter Demo',
-          theme: ThemeData.light(useMaterial3: true).copyWith(
-            scaffoldBackgroundColor: Colors.white,
-          ),
-          navigatorKey: navigatorKey,
-          darkTheme: ThemeData.dark(useMaterial3: true)
-              .copyWith(scaffoldBackgroundColor: Colors.black),
-          routes: {
-            '/home_screen': (context) => const MobileScreenLayout(),
-          },
-          home: StreamBuilder(
-              stream: FirebaseAuth.instance.authStateChanges(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text("${snapshot.error}"),
-                  );
-                }
-                if (snapshot.hasData && snapshot.data != null) {
-                  MessagingMethod().uploadTokenToServer();
-                  MessagingMethod().initNotifications();
-                  return const ResponsiveLayout(
-                    mobileScreenLayout: MobileScreenLayout(),
-                    webScreenLayout: WebScreenLayout(),
-                  );
-                } else {
-                  // No user authenticated
-                  return const LoginScreen();
-                }
+        navigatorKey: navigatorKey,
+        darkTheme: ThemeData.dark(useMaterial3: true)
+            .copyWith(scaffoldBackgroundColor: Colors.black),
+        routes: {
+          '/home_screen': (context) => const MobileScreenLayout(),
+        },
+        home: StreamBuilder(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
               }
-          )),
-    );
+              if (snapshot.hasError) {
+                return Center(
+                  child: Text("${snapshot.error}"),
+                );
+              }
+              if (snapshot.hasData && snapshot.data != null) {
+                MessagingMethod().uploadTokenToServer();
+                MessagingMethod().initNotifications();
+                return const ResponsiveLayout(
+                  mobileScreenLayout: MobileScreenLayout(),
+                  webScreenLayout: WebScreenLayout(),
+                );
+              } else {
+                // No user authenticated
+                return const LoginScreen();
+              }
+            }
+        ));
   }
 }

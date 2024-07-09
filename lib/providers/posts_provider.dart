@@ -22,10 +22,10 @@ class PostsProvider with ChangeNotifier {
   }
 
   Future<int> initPostData() async {
-    List<Map<String, dynamic>>?  commentData = await _firestoreMethods.getPostsData();
-    _postData = commentData;
+    List<Map<String, dynamic>>?  postData = await _firestoreMethods.getPostsData();
+    _postData = postData;
     notifyListeners();
-    return commentData.length;
+    return postData.length;
   }
 
 
