@@ -8,7 +8,8 @@ import 'package:instagram_clon/screens/post_screen/posting_screen.dart';
 
 class CropImgScreen extends StatefulWidget {
   final Uint8List file;
-  const CropImgScreen({super.key, required this.file});
+  final Function toMainScreen;
+  const CropImgScreen({super.key, required this.file,  required this.toMainScreen});
 
   @override
   State<CropImgScreen> createState() => _CropImgScreenState();
@@ -80,7 +81,7 @@ class _CropImgScreenState extends State<CropImgScreen> {
     final image = await controller.onCropImage();
     if (!context.mounted) return;
     Navigator.of(context).pop();
-    Navigator.push(context, MaterialPageRoute(builder: (context) => PostingScreen(file: image!.bytes)));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => PostingScreen(file: image!.bytes, toMainScreen: widget.toMainScreen)));
   }
 
   void onBackPressed() {

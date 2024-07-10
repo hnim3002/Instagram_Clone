@@ -46,6 +46,11 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
         duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
   }
 
+  void toHomeScreen() {
+    _pageViewController.animateToPage(1,
+        duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -72,11 +77,13 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
       children: [
         PostScreen(
           closeBtnOnPressed: () => closeBtnOnPressed(),
+          toMainScreen: () => toHomeScreen()
         ),
         MainScreen(
           closeBtnOnPressed: () => goPostScreen(),
           cupertinoTabController: _cupertinoTabController,
           toChatScreen: () => toChatScreen(),
+          toHomeScreen: () => toHomeScreen()
         ),
         ChatListScreen(closeBtnOnPressed: () => closeBtnOnPressed())
       ],
@@ -87,12 +94,15 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
 class MainScreen extends ConsumerStatefulWidget {
   final Function closeBtnOnPressed;
   final Function toChatScreen;
+  final Function toHomeScreen;
   final CupertinoTabController cupertinoTabController;
   const MainScreen(
       {super.key,
       required this.closeBtnOnPressed,
       required this.cupertinoTabController,
-      required this.toChatScreen});
+      required this.toChatScreen,
+      required this.toHomeScreen
+      });
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _MainScreenState();

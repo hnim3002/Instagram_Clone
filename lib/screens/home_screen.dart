@@ -45,7 +45,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
     // final model.User? user = Provider.of<UserProvider>(context).user;
-    final user = ref.watch(userNotifierProvider);
+
     final postData = ref.watch(postNotifierProvider);
 
     return Scaffold(
@@ -105,7 +105,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     childCount: value.length,
                   ),
                 ),
-                AsyncError(:final error) => Text('Oops $error'),
+                AsyncError(:final error) => SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          print('Error: $error');
+                      return Container(
+                        child: Text('Oops $error'),
+                      );
+                    },
+                    childCount: 1,
+                  ),
+                ),
                 _ =>  SliverList(
                   delegate: SliverChildBuilderDelegate(
                         (context, index) {

@@ -47,30 +47,12 @@ class FirestoreMethods {
 
   }
 
-  Future<String> uploadPost({
-    required String caption,
-    required String username,
-    required Uint8List file,
-    required String uid,
-    required String userPhotoUrl,
-    required String postId,
-  }) async {
+  Future<String> uploadPost(Post post) async {
     String res = "Some error occurred";
     try {
-      String postPhotoUrl =
-          await StorageMethods().uploadImageToStorage("post", file, true);
-
-      Post post = Post(
-          postId: postId,
-          uid: uid,
-          postPhotoUrl: postPhotoUrl,
-          timestamp: Timestamp.fromDate(DateTime.now()),
-          caption: caption,
-          like: []);
-
       _firestore
           .collection(kKeyCollectionPosts)
-          .doc(postId)
+          .doc(post.postId)
           .set(post.toFirestore());
       res = "Success";
     } catch (e) {
@@ -454,7 +436,7 @@ class FirestoreMethods {
   Future<List<Map<String, dynamic>>> getPostsData() async {
     QuerySnapshot postsSnapshot = await FirebaseFirestore.instance
         .collection(kKeyCollectionPosts)
-        .orderBy(kKeyTimestamp, descending: true)
+        .orderBy(kKeyTimestamp, descending: true).limit(20)
         .get();
 
     List<String> userIds =
@@ -463,7 +445,7 @@ class FirestoreMethods {
     if (userIds.isEmpty) return [];
     QuerySnapshot usersSnapshot = await FirebaseFirestore.instance
         .collection(kKeyCollectionUsers)
-        .where(FieldPath.documentId, whereIn: userIds)
+        .where(FieldPath.documentId, whereIn: userIds).limit(20)
         .get();
 
     // Create a map to store user data

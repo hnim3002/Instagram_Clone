@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:instagram_clon/Widgets/custom_divider_widgets.dart';
@@ -10,6 +11,7 @@ import 'package:provider/provider.dart' as model;
 import 'package:uuid/uuid.dart';
 
 import '../../Widgets/custom_button_widgets.dart';
+import '../../models/post.dart';
 import '../../models/user.dart' as model;
 import '../../models/user.dart';
 import '../../providers/posts_provider.dart';
@@ -17,11 +19,13 @@ import '../../providers/posts_state_provider.dart';
 import '../../providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../resources/storage_method.dart';
 import '../../riverpod_providers/user_provider.dart';
 
 class PostingScreen extends ConsumerStatefulWidget {
   final Uint8List file;
-  const PostingScreen({super.key, required this.file});
+  final Function toMainScreen;
+  const PostingScreen({super.key, required this.file, required this.toMainScreen});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _PostingScreenState();
@@ -65,18 +69,11 @@ class _PostingScreenState extends ConsumerState<PostingScreen> {
       String uid, String username, String userPhotoUrl) async {
     try {
       String postId = const Uuid().v1();
-      String res = await FirestoreMethods().uploadPost(
-          caption: _postController.text.trim(),
-          username: username,
-          file:  await compressImage(widget.file, 80),
-          uid: uid,
-          userPhotoUrl: userPhotoUrl,
-          postId: postId);
+
+
+
+      ref.read(postNotifierProvider.notifier).addPost(_postController.text.trim(),uid,postId, await compressImage(widget.file, 80));
       await FirestoreMethods().updateUserPost(postId, uid, true);
-      if(res == "success") {
-      } else {
-        print(res);
-      }
     } catch (e) {
       print(e);
     }
@@ -103,6 +100,10 @@ class _PostingScreenState extends ConsumerState<PostingScreen> {
   Future<void> getPostData() async {
     // Provider.of<PostsStateProvider>(context, listen: false).setPostDataSize(await Provider.of<PostsProvider>(context, listen: false).initPostData());
     ref.read(postNotifierProvider.notifier).updatePostData();
+  }
+
+  void onPostPress() {
+
   }
 
   Future<void> _showDialog(BuildContext context, User user) async {
@@ -146,7 +147,61 @@ class _PostingScreenState extends ConsumerState<PostingScreen> {
   Widget build(BuildContext context) {
 
     //final model.User? user = model.Provider.of<UserProvider>(context).user;
-    final user = ref.watch(userNotifierProvider);
+    final user = ref.read(userNotifierProvider);
+
+
+
+    ref.listen(postNotifierProvider, (prev, next) {
+      if (next is AsyncLoading) {
+        showDialog(
+          context: context,
+          barrierDismissible: false, // Prevent user from dismissing dialog
+          builder: (BuildContext context) {
+            return AlertDialog(
+              insetPadding: const EdgeInsets.symmetric(horizontal: 95),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              content: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 20.0, // Set the desired width
+                      height: 20.0, // Set the desired height
+                      child: CircularProgressIndicator(strokeWidth: 3.0),
+                    ),
+                    SizedBox(width: 10,),
+                    Text('Processing...'), // Processing text
+                  ],
+                ),
+              ),
+
+            );
+          },
+        );
+      }
+      if(next is AsyncError) {
+        Navigator.of(context).pop();
+        print("Error: ${next.error}");
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              content: Text("Something went wrong: ${next.error}"),
+            );
+          },
+        );
+
+      }
+      if(next is AsyncData) {
+        Navigator.of(context).pop();
+        Navigator.popUntil(context, (route) => route.isFirst);
+        widget.toMainScreen();
+      }
+
+    });
 
     bool isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
@@ -222,8 +277,9 @@ class _PostingScreenState extends ConsumerState<PostingScreen> {
                             ),
                           ],
                         ),
-                        onPressed: () {
-                          _showDialog(context, user.asData!.value!);
+                        onPressed: () async {
+                          await postImage(user.asData!.value!.uid.toString(), user.asData!.value!.username.toString(), user.asData!.value!.photoUrl.toString());
+                          // _showDialog(context, user.asData!.value!);
                         },
                       ),
                     ),

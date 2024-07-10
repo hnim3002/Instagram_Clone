@@ -10,8 +10,9 @@ import 'package:transparent_image/transparent_image.dart';
 
 class PostScreen extends StatefulWidget {
   final Function closeBtnOnPressed;
+  final Function toMainScreen;
   final bool isUserScreen;
-  const PostScreen({super.key, this.isUserScreen = false, required this.closeBtnOnPressed});
+  const PostScreen({super.key, this.isUserScreen = false, required this.closeBtnOnPressed, required this.toMainScreen});
 
   @override
   State<PostScreen> createState() => _PostScreenState();
@@ -99,7 +100,7 @@ class _PostScreenState extends State<PostScreen> {
           MaterialPageRoute(builder: (context) => CropUserImgScreen(file: file)));
     } else {
       Navigator.push(context,
-          MaterialPageRoute(builder: (context) => CropImgScreen(file: file)));
+          MaterialPageRoute(builder: (context) => CropImgScreen(file: file, toMainScreen: () => widget.toMainScreen())));
     }
 
   }
